@@ -22,5 +22,7 @@ if [ ! -d "public/build" ] || [ -z "$(ls -A public/build 2>/dev/null || true)" ]
   npm run build || true
 fi
 
+php artisan optimize
+
 # Run php-fpm as PID 1
 exec php-fpm
