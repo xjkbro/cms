@@ -7,6 +7,8 @@ cd /var/www
 # If vendor not present, install PHP deps
 if [ ! -d "vendor" ]; then
   echo "Installing composer dependencies..."
+  # Mark the repo as a safe directory to avoid "dubious ownership" errors
+  git config --global --add safe.directory /var/www || true
   composer install --no-interaction --no-ansi --no-progress --no-scripts || true
 fi
 
