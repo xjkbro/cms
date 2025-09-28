@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class PostController extends Controller
@@ -109,16 +110,22 @@ class PostController extends Controller
         $request->validate([
             'file' => 'required|image|max:5120', // max 5MB
         ]);
-
         $user = $request->user();
         $file = $request->file('file');
         $timestamp = now()->timestamp;
         $filename = $timestamp . '_' . preg_replace('/[^A-Za-z0-9._-]/', '_', $file->getClientOriginalName());
-        $path = $file->storeAs("public/{$user->id}", $filename);
 
-        // Return publicly accessible URL
-        $url = asset(str_replace('public/', 'storage/', $path));
+        try {
+            // store on the public disk (storage/app/public/{userId}/filename)
+            $storedPath = Storage::disk('public')->putFileAs((string) $user->id, $file, $filename);
 
-        return response()->json([ 'url' => $url ]);
+            // generate the public url using the public disk
+            $url = Storage::disk('public')->url($storedPath);
+
+            return response()->json(['url' => $url]);
+        } catch (\Exception $e) {
+            logger()->error('Image upload failed', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Upload failed'], 500);
+        }
     }
 }

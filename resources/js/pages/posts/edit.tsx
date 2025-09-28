@@ -9,6 +9,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
+import { useState } from 'react';
 
 import MarkdownIt from 'markdown-it';
 import TurndownService from 'turndown';
@@ -204,6 +205,9 @@ export default function PostEdit({ post = null, categories = [] }: PostEditProps
             setData('content', markdown);
         }
     });
+
+    // upload state for images
+    const [uploadingImage, setUploadingImage] = useState(false);
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -427,34 +431,57 @@ export default function PostEdit({ post = null, categories = [] }: PostEditProps
                                         </Button>                                        <div className="w-px h-6 bg-border mx-2" />
 
                                         {/* Image */}
-                                        <Button type="button" size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => {
-                                            const input = document.createElement('input');
-                                            input.type = 'file';
-                                            input.accept = 'image/*';
-                                            input.onchange = async (e) => {
-                                                const file = (e.target as HTMLInputElement).files?.[0];
-                                                if (!file) return;
-                                                const form = new FormData();
-                                                form.append('file', file);
-                                                const resp = await fetch('/posts/upload-image', {
-                                                    method: 'POST',
-                                                    body: form,
-                                                    headers: {
-                                                        'X-Requested-With': 'XMLHttpRequest',
-                                                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.getAttribute('content') || ''
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-8 w-8 p-0"
+                                            disabled={uploadingImage}
+                                            onClick={() => {
+                                                const input = document.createElement('input');
+                                                input.type = 'file';
+                                                input.accept = 'image/*';
+                                                input.onchange = async (e) => {
+                                                    const file = (e.target as HTMLInputElement).files?.[0];
+                                                    if (!file) return;
+                                                    const form = new FormData();
+                                                    form.append('file', file);
+                                                    try {
+                                                        setUploadingImage(true);
+                                                        const resp = await fetch('/posts/upload-image', {
+                                                            method: 'POST',
+                                                            body: form,
+                                                            credentials: 'include',
+                                                            headers: {
+                                                                'X-Requested-With': 'XMLHttpRequest',
+                                                                'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.getAttribute('content') || ''
+                                                            }
+                                                        });
+                                                        if (resp.ok) {
+                                                            const json = await resp.json();
+                                                            const url = json.url;
+                                                            editor?.chain().focus().setImage({ src: url }).run();
+                                                        } else {
+                                                            if (resp.status === 419) {
+                                                                alert('Upload failed: CSRF token mismatch (419). Make sure you are authenticated and the site has a valid CSRF token. Try reloading the page.');
+                                                            } else {
+                                                                const text = await resp.text();
+                                                                console.error('Upload failed:', resp.status, text);
+                                                                alert('Upload failed. See console for details.');
+                                                            }
+                                                        }
+                                                    } catch (err) {
+                                                        console.error('Upload error', err);
+                                                        alert('Upload error. See console for details.');
+                                                    } finally {
+                                                        setUploadingImage(false);
                                                     }
-                                                });
-                                                if (resp.ok) {
-                                                    const json = await resp.json();
-                                                    const url = json.url;
-                                                    editor?.chain().focus().setImage({ src: url }).run();
-                                                } else {
-                                                    alert('Upload failed');
-                                                }
-                                            };
-                                            input.click();
-                                        }}>
-                                            🖼️
+                                                };
+                                                input.click();
+                                            }}
+                                            title={uploadingImage ? 'Uploading…' : 'Insert image'}
+                                        >
+                                            {uploadingImage ? '…' : '🖼️'}
                                         </Button>
                                     </div>
 
