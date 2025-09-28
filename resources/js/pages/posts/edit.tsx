@@ -276,22 +276,22 @@ export default function PostEdit({ post = null, categories = [] }: PostEditProps
                                     {/* Rich Text Toolbar */}
                                     <div className="flex items-center gap-1 flex-wrap p-3 bg-background border border-border rounded-t-md">
                                         {/* Undo/Redo */}
-                                        <Button 
-                                            type="button" 
-                                            size="sm" 
-                                            variant="ghost" 
-                                            className="h-8 w-8 p-0" 
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-8 w-8 p-0"
                                             disabled={!editor?.can().undo()}
                                             onClick={() => editor?.chain().focus().undo().run()}
                                             title="Undo (Ctrl+Z)"
                                         >
                                             ↶
                                         </Button>
-                                        <Button 
-                                            type="button" 
-                                            size="sm" 
-                                            variant="ghost" 
-                                            className="h-8 w-8 p-0" 
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-8 w-8 p-0"
                                             disabled={!editor?.can().redo()}
                                             onClick={() => editor?.chain().focus().redo().run()}
                                             title="Redo (Ctrl+Y)"
@@ -400,11 +400,11 @@ export default function PostEdit({ post = null, categories = [] }: PostEditProps
                                         <div className="w-px h-6 bg-border mx-2" />
 
                                         {/* Link */}
-                                        <Button 
-                                            type="button" 
-                                            size="sm" 
-                                            variant={editor?.isActive('link') ? 'default' : 'ghost'} 
-                                            className="h-8 w-8 p-0" 
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant={editor?.isActive('link') ? 'default' : 'ghost'}
+                                            className="h-8 w-8 p-0"
                                             onClick={() => {
                                                 if (editor?.isActive('link')) {
                                                     editor.chain().focus().unsetLink().run();

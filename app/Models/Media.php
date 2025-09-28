@@ -33,7 +33,38 @@ class Media extends Model
             return $this->path;
         }
 
-        return asset(Storage::url($this->path));
+        // Use the images route which can handle both resized and original images
+        return url('/images/' . $this->path);
+    }
+
+    public function getResizedUrl(?int $width = null, ?int $height = null, string $fit = 'contain'): string
+    {
+        if ($this->disk === 'url') {
+            return $this->path;
+        }
+
+        $url = url('/images/' . $this->path);
+        $params = [];
+
+        if ($width) $params['w'] = $width;
+        if ($height) $params['h'] = $height;
+        if ($fit !== 'contain') $params['fit'] = $fit;
+
+        return $url . (empty($params) ? '' : '?' . http_build_query($params));
+    }
+
+    /**
+     * Get a simple resized URL - equivalent to asset(Storage::url($path)) but with resizing
+     */
+    public static function imageUrl(string $path, ?int $width = null, ?int $height = null): string
+    {
+        $url = url('/images/' . $path);
+        $params = [];
+
+        if ($width) $params['w'] = $width;
+        if ($height) $params['h'] = $height;
+
+        return $url . (empty($params) ? '' : '?' . http_build_query($params));
     }
 
     public function getHumanReadableSizeAttribute(): string

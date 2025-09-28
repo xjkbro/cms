@@ -18,7 +18,7 @@ type Media = {
 };
 
 interface MediaBrowserProps {
-    onSelect: (url: string) => void;
+    onSelect: (url: string, width?: number, height?: number) => void;
     trigger?: React.ReactNode;
 }
 
@@ -84,8 +84,23 @@ export function MediaBrowser({ onSelect, trigger }: MediaBrowserProps) {
         }
     };
 
-    const handleSelect = (selectedMedia: Media) => {
-        onSelect(selectedMedia.url);
+    const handleSelect = (media: Media) => {
+        if (!isImage(media.mime_type)) {
+            onSelect(media.url);
+            setOpen(false);
+        }
+    };
+
+    const handleSizeSelect = (media: Media, width?: number, height?: number) => {
+        let url = media.url;
+        if (width || height) {
+            const urlObj = new URL(media.url);
+            if (width) urlObj.searchParams.set('w', width.toString());
+            if (height) urlObj.searchParams.set('h', height.toString());
+            url = urlObj.toString();
+        }
+
+        onSelect(url, width, height);
         setOpen(false);
     };
 
@@ -181,8 +196,7 @@ export function MediaBrowser({ onSelect, trigger }: MediaBrowserProps) {
                                 {media.map((item) => (
                                     <div
                                         key={item.id}
-                                        className="group relative border rounded-lg overflow-hidden cursor-pointer hover:border-primary"
-                                        onClick={() => handleSelect(item)}
+                                        className="group relative border rounded-lg overflow-hidden hover:border-primary"
                                     >
                                         <div className="aspect-square bg-muted flex items-center justify-center">
                                             {isImage(item.mime_type) ? (
@@ -202,6 +216,43 @@ export function MediaBrowser({ onSelect, trigger }: MediaBrowserProps) {
                                             <p className="text-xs text-muted-foreground">
                                                 {item.human_readable_size}
                                             </p>
+                                            {isImage(item.mime_type) ? (
+                                                <div className="flex gap-1 mt-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="h-6 px-2 text-xs"
+                                                        onClick={() => handleSizeSelect(item, undefined, undefined)}
+                                                    >
+                                                        Original
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="h-6 px-2 text-xs"
+                                                        onClick={() => handleSizeSelect(item, 800, undefined)}
+                                                    >
+                                                        W:800
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="h-6 px-2 text-xs"
+                                                        onClick={() => handleSizeSelect(item, undefined, 600)}
+                                                    >
+                                                        H:600
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="h-6 w-full mt-2 text-xs"
+                                                    onClick={() => handleSelect(item)}
+                                                >
+                                                    Select
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
                                 ))}

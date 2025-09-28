@@ -10,6 +10,9 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
+// Catch resized image requests - must be before auth middleware
+Route::get('/images/{path}', [MediaController::class, 'serveResizedStorage'])->where('path', '.*');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
@@ -31,6 +34,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
     Route::resource('media', MediaController::class);
+    Route::get('media/{media}/image', [MediaController::class, 'image'])->name('media.image');
+
+    // Catch storage URLs with resize parameters - REMOVED (moved outside auth middleware)
+    // Route::get('/storage/{path}', [MediaController::class, 'serveResizedStorage'])->where('path', '.*');
 });
 
 require __DIR__.'/settings.php';
