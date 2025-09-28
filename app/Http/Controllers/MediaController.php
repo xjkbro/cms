@@ -222,7 +222,7 @@ class MediaController extends Controller
     }
 
     /**
-     * Serve storage files with optional resizing.
+     * Serve storage files with optional resizing and caching.
      */
     public function serveResizedStorage(Request $request, string $path)
     {
@@ -251,12 +251,6 @@ class MediaController extends Controller
             abort(404);
         }
 
-        // For storage URL resizing, we allow public access since these are meant to be publicly viewable
-        // Skip authentication check for public storage access
-        // if ($media && $media->user_id !== Auth::id()) {
-        //     abort(403);
-        // }
-
         // Only process images
         if (!str_starts_with($media->mime_type, 'image/')) {
             return response()->file(storage_path('app/public/' . $path));
@@ -270,6 +264,18 @@ class MediaController extends Controller
             abort(400, 'Invalid dimensions');
         }
 
+        // Generate cache key based on file path, dimensions, and file modification time
+        $cacheKey = md5($path . '_' . $width . '_' . $height . '_' . $fit . '_' . ($media->updated_at ?? ''));
+        $cacheDir = 'cache/images';
+        $cachedPath = $cacheDir . '/' . $cacheKey . '.jpg';
+
+        // Check if cached version exists
+        if (Storage::disk('public')->exists($cachedPath)) {
+            $response = response()->file(Storage::disk('public')->path($cachedPath));
+            $response->headers->set('Cache-Control', 'public, max-age=31536000'); // 1 year cache
+            return $response;
+        }
+
         try {
             $imagePath = storage_path('app/public/' . $path);
 
@@ -279,17 +285,40 @@ class MediaController extends Controller
 
             // Resize based on parameters
             if ($width && $height) {
-                $image->cover($width, $height);
+                switch ($fit) {
+                    case 'cover':
+                        $image->cover($width, $height);
+                        break;
+                    case 'contain':
+                        $image->contain($width, $height);
+                        break;
+                    case 'fill':
+                        $image->resize($width, $height);
+                        break;
+                    default:
+                        $image->contain($width, $height);
+                }
             } elseif ($width) {
                 $image->scale(width: $width);
             } elseif ($height) {
                 $image->scale(height: $height);
             }
 
+            // Encode the image
+            $encodedImage = $image->encode()->toString();
+
+            // Ensure cache directory exists
+            if (!Storage::disk('public')->exists($cacheDir)) {
+                Storage::disk('public')->makeDirectory($cacheDir);
+            }
+
+            // Save to cache for future requests
+            Storage::disk('public')->put($cachedPath, $encodedImage);
+
             // Return the resized image
-            return response($image->encode()->toString())
+            return response($encodedImage)
                 ->header('Content-Type', 'image/jpeg')
-                ->header('Cache-Control', 'public, max-age=86400');
+                ->header('Cache-Control', 'public, max-age=31536000'); // 1 year cache
 
         } catch (\Exception $e) {
             Log::error('Image resize failed: ' . $e->getMessage());

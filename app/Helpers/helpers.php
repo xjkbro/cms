@@ -3,7 +3,7 @@
 if (!function_exists('image_url')) {
     /**
      * Generate a resized image URL - equivalent to asset(Storage::url($path))
-     * 
+     *
      * Usage:
      * image_url('1/image.jpg') // Original size
      * image_url('1/image.jpg', 300) // Width 300px
