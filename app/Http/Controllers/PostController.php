@@ -119,10 +119,24 @@ class PostController extends Controller
             // store on the public disk (storage/app/public/{userId}/filename)
             $storedPath = Storage::disk('public')->putFileAs((string) $user->id, $file, $filename);
 
-            // generate the public url using the public disk
-            $url = Storage::disk('public')->url($storedPath);
+            // generate the public url using the public storage symlink (public/storage)
+            // use asset() to avoid static analysis issues with the Filesystem contract
+            $url = asset('storage/' . ltrim($storedPath, '/'));
 
-            return response()->json(['url' => $url]);
+            // Create media record
+            $media = \App\Models\Media::create([
+                'user_id' => $user->id,
+                'name' => $file->getClientOriginalName(),
+                'file_name' => $filename,
+                'mime_type' => $file->getMimeType(),
+                'path' => $storedPath,
+                'disk' => 'public',
+                'file_hash' => hash_file('sha256', $file->getRealPath()),
+                'collection' => 'default',
+                'size' => $file->getSize(),
+            ]);
+
+            return response()->json(['url' => $url, 'media' => $media]);
         } catch (\Exception $e) {
             logger()->error('Image upload failed', ['error' => $e->getMessage()]);
             return response()->json(['message' => 'Upload failed'], 500);

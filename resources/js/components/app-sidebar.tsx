@@ -13,7 +13,7 @@ import {
 import { categories, dashboard, posts } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Image } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -31,6 +31,11 @@ const mainNavItems: NavItem[] = [
         title: 'Categories',
         href: categories(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Media',
+        href: '/media',
+        icon: Image,
     },
 ];
 
