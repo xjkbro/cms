@@ -102,6 +102,12 @@ export default function ProjectsIndex({ projects }: ProjectsIndexProps) {
                           Edit
                         </Link>
                       </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href={`/projects/${project.id}/collaboration`}>
+                          <Settings className="h-4 w-4 mr-2" />
+                          Collaboration
+                        </Link>
+                      </DropdownMenuItem>
                       {!project.is_default && (
                         <DropdownMenuItem onClick={() => handleMakeDefault(project.id)}>
                           <CheckCircle className="h-4 w-4 mr-2" />

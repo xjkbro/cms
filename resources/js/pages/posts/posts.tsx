@@ -17,13 +17,19 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+type User = {
+    id: number;
+    name: string;
+    email: string;
+};
+
 type Post = {
     id: number;
     title: string;
     slug: string;
     category?: Category | null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    user: any;
+    user: User;
+    authors?: User[];
     content: string;
     excerpt: string | null;
     tags: Tag[];
@@ -75,8 +81,24 @@ export default function Posts({posts, tags}: PostsProps) {
         }),
         columnHelper.accessor(row => row.user?.name ?? '', {
             id: 'author',
-            header: 'Author',
-            cell: info => info.getValue(),
+            header: 'Author(s)',
+            cell: info => {
+                const post = info.row.original;
+                const primaryAuthor = post.user?.name;
+                const coAuthors = post.authors?.filter(author => author.id !== post.user?.id);
+                
+                if (coAuthors && coAuthors.length > 0) {
+                    const coAuthorNames = coAuthors.map(author => author.name).join(', ');
+                    return (
+                        <div>
+                            <div className="font-medium">{primaryAuthor}</div>
+                            <div className="text-xs text-muted-foreground">+ {coAuthorNames}</div>
+                        </div>
+                    );
+                }
+                
+                return primaryAuthor;
+            },
             enableSorting: true,
         }),
         columnHelper.accessor('excerpt', {

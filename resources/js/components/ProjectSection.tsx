@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -23,9 +23,12 @@ import { ChevronRight, FolderOpen, Plus, Settings, CheckCircle } from 'lucide-re
 
 interface Project {
   id: number;
+  user_id: number;
   name: string;
   description?: string;
   is_default: boolean;
+  is_owner?: boolean;
+  user_role?: string;
 }
 
 interface ProjectSectionProps {
@@ -34,6 +37,9 @@ interface ProjectSectionProps {
 }
 
 export function ProjectSection({ currentProject, projects }: ProjectSectionProps) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const props = usePage().props as any;
+  const currentUser = props.auth.user;
   const [isOpen, setIsOpen] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -89,14 +95,19 @@ export function ProjectSection({ currentProject, projects }: ProjectSectionProps
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="truncate">{project.name}</span>
-                        {project.is_default && (
+                        {project.is_default && project.user_id == currentUser.id && (
                           <Badge variant="outline" className="text-xs h-4 px-1">
                             Default
                           </Badge>
                         )}
+                        {!project.is_owner && project.user_role && (
+                          <Badge variant="secondary" className="text-xs h-4 px-1">
+                            {project.user_role}
+                          </Badge>
+                        )}
                       </div>
                       {project.id === currentProject.id && (
-                        <CheckCircle className="h-3 w-3 text-primary flex-shrink-0 text-green-500" />
+                        <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
                       )}
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>

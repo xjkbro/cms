@@ -17,13 +17,17 @@ class DashboardController extends Controller
         $currentProject = $request->attributes->get('current_project');
         $timeframe = $request->get('timeframe', 'all'); // 'all', 'year', 'month'
         
-        // Basic statistics for the current project
-        $publishedPosts = Post::where('user_id', $user->id)
+        // Get all user IDs who have access to this project
+        $collaboratorIds = $currentProject->collaborators()->pluck('users.id')->toArray();
+        $userIds = array_merge([$currentProject->user_id], $collaboratorIds);
+        
+        // Basic statistics for the current project (from all collaborators)
+        $publishedPosts = Post::whereIn('user_id', $userIds)
             ->where('project_id', $currentProject->id)
             ->where('is_draft', false)
             ->count();
             
-        $draftPosts = Post::where('user_id', $user->id)
+        $draftPosts = Post::whereIn('user_id', $userIds)
             ->where('project_id', $currentProject->id)
             ->where('is_draft', true)
             ->count();
@@ -31,7 +35,7 @@ class DashboardController extends Controller
         $totalCategories = Category::where('project_id', $currentProject->id)->count();
         
         // Posts over time data
-        $postsOverTime = $this->getPostsOverTime($user->id, $currentProject->id, $timeframe);
+        $postsOverTime = $this->getPostsOverTime($userIds, $currentProject->id, $timeframe);
         
         return Inertia::render('dashboard', [
             'stats' => [
@@ -46,9 +50,9 @@ class DashboardController extends Controller
         ]);
     }
     
-    private function getPostsOverTime($userId, $projectId, $timeframe)
+    private function getPostsOverTime($userIds, $projectId, $timeframe)
     {
-        $query = Post::where('user_id', $userId)
+        $query = Post::whereIn('user_id', $userIds)
             ->where('project_id', $projectId)
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'));
             

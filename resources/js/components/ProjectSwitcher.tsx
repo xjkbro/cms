@@ -16,6 +16,8 @@ interface Project {
   name: string;
   description?: string;
   is_default: boolean;
+  is_owner?: boolean;
+  user_role?: string;
 }
 
 interface ProjectSwitcherProps {
@@ -50,6 +52,11 @@ export function ProjectSwitcher({ currentProject, projects }: ProjectSwitcherPro
                 Default
               </Badge>
             )}
+            {!currentProject.is_owner && currentProject.user_role && (
+              <Badge variant="outline" className="text-xs h-4">
+                {currentProject.user_role}
+              </Badge>
+            )}
           </div>
           <ChevronDown className="h-4 w-4 opacity-50" />
         </Button>
@@ -73,6 +80,11 @@ export function ProjectSwitcher({ currentProject, projects }: ProjectSwitcherPro
               {project.is_default && (
                 <Badge variant="secondary" className="text-xs h-4">
                   Default
+                </Badge>
+              )}
+              {!project.is_owner && project.user_role && (
+                <Badge variant="outline" className="text-xs h-4">
+                  {project.user_role}
                 </Badge>
               )}
             </div>

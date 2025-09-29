@@ -26,7 +26,11 @@ class SetCurrentProject
             $currentProject = null;
             
             if ($currentProjectId) {
+                // Check both owned and collaborating projects
                 $currentProject = $user->projects()->find($currentProjectId);
+                if (!$currentProject) {
+                    $currentProject = $user->collaboratingProjects()->find($currentProjectId);
+                }
             }
             
             // If no current project or invalid project, get the default one
@@ -34,9 +38,12 @@ class SetCurrentProject
                 $currentProject = Project::defaultForUser($user->id);
             }
             
-            // If still no project, get the first one or create a default one
+            // If still no project, get the first one (owned or collaborating) or create a default one
             if (!$currentProject) {
                 $currentProject = $user->projects()->first();
+                if (!$currentProject) {
+                    $currentProject = $user->collaboratingProjects()->first();
+                }
                 
                 if (!$currentProject) {
                     // Create a default project for the user
@@ -57,8 +64,10 @@ class SetCurrentProject
             $request->attributes->set('current_project', $currentProject);
             View::share('currentProject', $currentProject);
             
-            // Also get all user projects for the project switcher
-            $allProjects = $user->projects()->where('is_active', true)->get();
+            // Also get all user projects for the project switcher (owned + collaborating)
+            $ownedProjects = $user->projects()->where('is_active', true)->get();
+            $collaboratingProjects = $user->collaboratingProjects()->where('is_active', true)->get();
+            $allProjects = $ownedProjects->concat($collaboratingProjects);
             View::share('userProjects', $allProjects);
         }
         

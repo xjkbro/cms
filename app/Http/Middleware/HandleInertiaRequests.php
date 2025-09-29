@@ -51,7 +51,24 @@ class HandleInertiaRequests extends Middleware
             },
             'userProjects' => function () use ($request) {
                 if ($request->user()) {
-                    return $request->user()->projects()->where('is_active', true)->get();
+                    $user = $request->user();
+                    
+                    // Get owned projects
+                    $ownedProjects = $user->projects()->where('is_active', true)->get()->map(function ($project) {
+                        $project->is_owner = true;
+                        $project->user_role = 'owner';
+                        return $project;
+                    });
+                    
+                    // Get collaborating projects
+                    $collaboratingProjects = $user->collaboratingProjects()->where('is_active', true)->get()->map(function ($project) {
+                        $project->is_owner = false;
+                        $project->user_role = $project->pivot->role;
+                        return $project;
+                    });
+                    
+                    // Merge and return all projects
+                    return $ownedProjects->concat($collaboratingProjects)->values();
                 }
                 return [];
             },

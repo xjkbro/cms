@@ -12,14 +12,38 @@ class ProjectController extends Controller
 {
     public function index()
     {
-        $projects = Auth::user()->projects()
+        $user = Auth::user();
+        
+        // Get projects owned by user
+        $ownedProjects = $user->projects()
             ->withCount(['posts', 'categories'])
-            ->orderBy('is_default', 'desc')
-            ->orderBy('created_at', 'desc')
             ->get();
+            
+        // Get projects where user is a collaborator
+        $collaboratingProjects = $user->collaboratingProjects()
+            ->withCount(['posts', 'categories'])
+            ->get();
+            
+        // Merge and add ownership info
+        $ownedProjects = $ownedProjects->map(function ($project) {
+            $project->is_owner = true;
+            $project->user_role = 'owner';
+            return $project;
+        });
+        
+        $collaboratingProjects = $collaboratingProjects->map(function ($project) {
+            $project->is_owner = false;
+            $project->user_role = $project->pivot->role;
+            return $project;
+        });
+        
+        $allProjects = $ownedProjects->concat($collaboratingProjects)
+            ->sortByDesc('is_default')
+            ->sortByDesc('created_at')
+            ->values();
 
         return Inertia::render('projects/index', [
-            'projects' => $projects,
+            'projects' => $allProjects,
         ]);
     }
 
@@ -139,8 +163,8 @@ class ProjectController extends Controller
 
         $project = Project::findOrFail($request->project_id);
 
-        // Ensure user owns the project
-        if ($project->user_id !== Auth::id()) {
+        // Ensure user has access to the project (owner or collaborator)
+        if (!$project->canUserView(Auth::user())) {
             abort(403);
         }
 

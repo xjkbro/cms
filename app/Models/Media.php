@@ -10,6 +10,7 @@ class Media extends Model
 {
     protected $fillable = [
         'user_id',
+        'project_id',
         'name',
         'file_name',
         'mime_type',
@@ -25,6 +26,11 @@ class Media extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function getUrlAttribute(): string

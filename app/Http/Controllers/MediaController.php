@@ -14,11 +14,67 @@ use Intervention\Image\Drivers\Gd\Driver;
 class MediaController extends Controller
 {
     /**
+     * Get all project IDs the user has access to (owned + collaborated)
+     */
+    private function getAccessibleProjectIds($user): array
+    {
+        $ownedProjectIds = $user->projects()->pluck('id')->toArray();
+        $collaboratedProjectIds = $user->collaboratingProjects()->pluck('projects.id')->toArray();
+        return array_merge($ownedProjectIds, $collaboratedProjectIds);
+    }
+    /**
+     * @OA\Get(
+     *     path="/api/media",
+     *     operationId="getMedia",
+     *     tags={"Media"},
+     *     summary="Get media files",
+     *     description="Retrieve paginated media files from all accessible projects",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Media files retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="media", type="object",
+     *                 @OA\Property(property="data", type="array",
+     *                     @OA\Items(type="object",
+     *                         @OA\Property(property="id", type="integer"),
+     *                         @OA\Property(property="name", type="string"),
+     *                         @OA\Property(property="file_name", type="string"),
+     *                         @OA\Property(property="mime_type", type="string"),
+     *                         @OA\Property(property="size", type="integer"),
+     *                         @OA\Property(property="url", type="string"),
+     *                         @OA\Property(property="project", type="object",
+     *                             @OA\Property(property="id", type="integer"),
+     *                             @OA\Property(property="name", type="string")
+     *                         ),
+     *                         @OA\Property(property="user", type="object",
+     *                             @OA\Property(property="id", type="integer"),
+     *                             @OA\Property(property="name", type="string")
+     *                         )
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="links", type="object"),
+     *                 @OA\Property(property="meta", type="object")
+     *             )
+     *         )
+     *     )
+     * )
+     * 
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $media = Media::where('user_id', Auth::id())
+        $user = $request->user();
+        $accessibleProjectIds = $this->getAccessibleProjectIds($user);
+
+        $media = Media::whereIn('project_id', $accessibleProjectIds)
+            ->with(['user:id,name', 'project:id,name'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
@@ -40,6 +96,43 @@ class MediaController extends Controller
     }
 
     /**
+     * @OA\Post(
+     *     path="/api/media",
+     *     operationId="uploadMedia",
+     *     tags={"Media"},
+     *     summary="Upload media file",
+     *     description="Upload a file or add media via URL to the current project",
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(property="file", type="string", format="binary", description="Media file to upload"),
+     *                 @OA\Property(property="url", type="string", format="url", description="External URL for media")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Media uploaded successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="media", type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="name", type="string"),
+     *                 @OA\Property(property="file_name", type="string"),
+     *                 @OA\Property(property="mime_type", type="string"),
+     *                 @OA\Property(property="size", type="integer"),
+     *                 @OA\Property(property="project_id", type="integer")
+     *             ),
+     *             @OA\Property(property="url", type="string", description="Public URL of the uploaded media")
+     *         )
+     *     ),
+     *     @OA\Response(response=400, description="No file or URL provided"),
+     *     @OA\Response(response=422, description="Validation error"),
+     *     @OA\Response(response=500, description="Upload failed")
+     * )
+     * 
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -62,8 +155,11 @@ class MediaController extends Controller
                 // generate the public url using the public disk
                 $url = asset(Storage::url($storedPath));
 
+                $currentProject = $request->attributes->get('current_project');
+
                 $media = Media::create([
                     'user_id' => $user->id,
+                    'project_id' => $currentProject ? $currentProject->id : null,
                     'name' => $file->getClientOriginalName(),
                     'file_name' => $filename,
                     'mime_type' => $file->getMimeType(),
@@ -90,8 +186,11 @@ class MediaController extends Controller
             $url = $request->url;
 
             // For external URLs, we'll store them directly
+            $currentProject = $request->attributes->get('current_project');
+
             $media = Media::create([
                 'user_id' => $user->id,
+                'project_id' => $currentProject ? $currentProject->id : null,
                 'name' => basename(parse_url($url, PHP_URL_PATH)) ?: 'External Image',
                 'file_name' => basename(parse_url($url, PHP_URL_PATH)) ?: 'external',
                 'mime_type' => 'image/url', // Custom mime type for external URLs
@@ -132,7 +231,10 @@ class MediaController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $media = Media::where('user_id', Auth::id())->findOrFail($id);
+        $user = $request->user();
+        $accessibleProjectIds = $this->getAccessibleProjectIds($user);
+
+        $media = Media::whereIn('project_id', $accessibleProjectIds)->findOrFail($id);
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -148,9 +250,17 @@ class MediaController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        $media = Media::where('user_id', Auth::id())->findOrFail($id);
+        $user = $request->user();
+        $accessibleProjectIds = $this->getAccessibleProjectIds($user);
+
+        $media = Media::whereIn('project_id', $accessibleProjectIds)->findOrFail($id);
+
+        // Only allow deletion if user has edit access to the project
+        if (!$media->project->canUserEdit($user)) {
+            abort(403);
+        }
 
         // Delete the file from storage if it's not a URL
         if ($media->disk !== 'url') {
@@ -167,8 +277,16 @@ class MediaController extends Controller
      */
     public function image(Request $request, Media $media)
     {
-        // Check if user owns this media
-        if ($media->user_id !== Auth::id()) {
+        $user = $request->user();
+        
+        // Check if user has access to this media through project collaboration
+        if ($user) {
+            $accessibleProjectIds = $this->getAccessibleProjectIds($user);
+            
+            if (!in_array($media->project_id, $accessibleProjectIds)) {
+                abort(403);
+            }
+        } else {
             abort(403);
         }
 

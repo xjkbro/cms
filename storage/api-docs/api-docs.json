@@ -2,12 +2,19 @@
     "openapi": "3.0.0",
     "info": {
         "title": "CMS API Documentation",
-        "description": "API documentation for the CMS application",
+        "description": "A comprehensive Content Management System with project collaboration, multi-author posts, and media management",
+        "contact": {
+            "email": "admin@example.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
         "version": "1.0.0"
     },
     "servers": [
         {
-            "url": "/api",
+            "url": "http://my-default-host.com",
             "description": "API Server"
         }
     ],
@@ -326,6 +333,190 @@
                     },
                     "404": {
                         "description": "Category not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/media": {
+            "get": {
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Get media files",
+                "description": "Retrieve paginated media files from all accessible projects",
+                "operationId": "getMedia",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Media files retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "media": {
+                                            "properties": {
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "file_name": {
+                                                                "type": "string"
+                                                            },
+                                                            "mime_type": {
+                                                                "type": "string"
+                                                            },
+                                                            "size": {
+                                                                "type": "integer"
+                                                            },
+                                                            "url": {
+                                                                "type": "string"
+                                                            },
+                                                            "project": {
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            },
+                                                            "user": {
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "links": {
+                                                    "type": "object"
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Upload media file",
+                "description": "Upload a file or add media via URL to the current project",
+                "operationId": "uploadMedia",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "file": {
+                                        "description": "Media file to upload",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "url": {
+                                        "description": "External URL for media",
+                                        "type": "string",
+                                        "format": "url"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Media uploaded successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "media": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "file_name": {
+                                                    "type": "string"
+                                                },
+                                                "mime_type": {
+                                                    "type": "string"
+                                                },
+                                                "size": {
+                                                    "type": "integer"
+                                                },
+                                                "project_id": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "url": {
+                                            "description": "Public URL of the uploaded media",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "No file or URL provided"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "500": {
+                        "description": "Upload failed"
                     }
                 },
                 "security": [
@@ -1176,6 +1367,212 @@
                     }
                 ]
             }
+        },
+        "/api/projects/{project}/collaboration": {
+            "get": {
+                "tags": [
+                    "Collaboration"
+                ],
+                "summary": "Get project collaboration details",
+                "description": "Retrieve collaborators and pending invitations for a project",
+                "operationId": "getProjectCollaboration",
+                "parameters": [
+                    {
+                        "name": "project",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Collaboration details retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "project": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "collaborators": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "email": {
+                                                        "type": "string"
+                                                    },
+                                                    "pivot": {
+                                                        "properties": {
+                                                            "role": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "admin",
+                                                                    "editor",
+                                                                    "viewer"
+                                                                ]
+                                                            },
+                                                            "joined_at": {
+                                                                "type": "string",
+                                                                "format": "date-time"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "pendingInvitations": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "email": {
+                                                        "type": "string"
+                                                    },
+                                                    "role": {
+                                                        "type": "string"
+                                                    },
+                                                    "status": {
+                                                        "type": "string"
+                                                    },
+                                                    "expires_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - User cannot admin this project"
+                    },
+                    "404": {
+                        "description": "Project not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/projects/{project}/collaboration/invite": {
+            "post": {
+                "tags": [
+                    "Collaboration"
+                ],
+                "summary": "Invite user to project",
+                "description": "Send an email invitation to collaborate on a project",
+                "operationId": "inviteToProject",
+                "parameters": [
+                    {
+                        "name": "project",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "role"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "enum": [
+                                            "admin",
+                                            "editor",
+                                            "viewer"
+                                        ],
+                                        "example": "editor"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "302": {
+                        "description": "Invitation sent successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invitation sent successfully!"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - User cannot admin this project"
+                    },
+                    "422": {
+                        "description": "Validation error - User already collaborator or pending invitation exists"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -1311,7 +1708,7 @@
         "securitySchemes": {
             "sanctum": {
                 "type": "http",
-                "description": "Enter token in format: Bearer <token>",
+                "description": "Laravel Sanctum token authentication",
                 "bearerFormat": "JWT",
                 "scheme": "bearer"
             }
@@ -1319,20 +1716,28 @@
     },
     "tags": [
         {
-            "name": "Categories",
-            "description": "Categories"
-        },
-        {
             "name": "Authentication",
-            "description": "Authentication"
-        },
-        {
-            "name": "Posts",
-            "description": "Posts"
+            "description": "User authentication and registration endpoints"
         },
         {
             "name": "Projects",
-            "description": "Projects"
+            "description": "Project management and collaboration endpoints"
+        },
+        {
+            "name": "Posts",
+            "description": "Blog posts and content management endpoints with multi-author support"
+        },
+        {
+            "name": "Categories",
+            "description": "Content categorization endpoints"
+        },
+        {
+            "name": "Media",
+            "description": "File upload and media management endpoints"
+        },
+        {
+            "name": "Collaboration",
+            "description": "Project collaboration and team management endpoints"
         }
     ]
 }

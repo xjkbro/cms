@@ -72,4 +72,35 @@ class User extends Authenticatable
     {
         return $this->hasMany(ApiToken::class);
     }
+
+    // Collaboration relationships
+    public function collaboratingProjects()
+    {
+        return $this->belongsToMany(Project::class, 'project_users')
+            ->withPivot(['role', 'joined_at'])
+            ->withTimestamps();
+    }
+
+    public function allProjects()
+    {
+        return $this->projects()->union($this->collaboratingProjects()->getQuery());
+    }
+
+    public function projectInvitations()
+    {
+        return $this->hasMany(ProjectInvitation::class, 'invited_by');
+    }
+
+    public function receivedInvitations()
+    {
+        return ProjectInvitation::where('email', $this->email);
+    }
+
+    // Multi-author post relationships
+    public function authoredPosts()
+    {
+        return $this->belongsToMany(Post::class, 'post_authors')
+            ->withPivot(['contribution_type', 'order'])
+            ->withTimestamps();
+    }
 }

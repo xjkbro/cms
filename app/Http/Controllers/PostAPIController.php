@@ -10,22 +10,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 
-#[OA\Info(
-    version: "1.0.0",
-    title: "CMS API Documentation",
-    description: "API documentation for the CMS application"
-)]
-#[OA\Server(
-    url: "/api",
-    description: "API Server"
-)]
-#[OA\SecurityScheme(
-    securityScheme: "sanctum",
-    type: "http",
-    scheme: "bearer",
-    bearerFormat: "JWT",
-    description: "Enter token in format: Bearer <token>"
-)]
+
+
 class PostAPIController extends Controller
 {
     #[OA\Post(

@@ -15,6 +15,10 @@ Route::get('/', function () {
 // Catch resized image requests - must be before auth middleware
 Route::get('/images/{path}', [MediaController::class, 'serveResizedStorage'])->where('path', '.*');
 
+// Project invitations (public routes - must be outside auth middleware)
+Route::get('invitations/{token}/accept', [\App\Http\Controllers\ProjectCollaborationController::class, 'acceptInvitation'])->name('invitations.accept');
+Route::post('invitations/{token}/decline', [\App\Http\Controllers\ProjectCollaborationController::class, 'declineInvitation'])->name('invitations.decline');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -27,6 +31,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     Route::post('projects/{project}/make-default', [ProjectController::class, 'makeDefault'])->name('projects.make-default');
     Route::post('projects/switch', [ProjectController::class, 'switch'])->name('projects.switch');
+    
+    // Project collaboration
+    Route::get('projects/{project}/collaboration', [\App\Http\Controllers\ProjectCollaborationController::class, 'index'])->name('projects.collaboration');
+    Route::post('projects/{project}/invite', [\App\Http\Controllers\ProjectCollaborationController::class, 'invite'])->name('projects.invite');
+    Route::post('projects/{project}/collaborators/{user}/role', [\App\Http\Controllers\ProjectCollaborationController::class, 'updateRole'])->name('projects.updateRole');
+    Route::delete('projects/{project}/collaborators/{user}', [\App\Http\Controllers\ProjectCollaborationController::class, 'removeCollaborator'])->name('projects.removeCollaborator');
+    Route::delete('projects/{project}/invitations/{invitation}', [\App\Http\Controllers\ProjectCollaborationController::class, 'cancelInvitation'])->name('projects.cancelInvitation');
 
     Route::get('posts', [PostController::class, 'index'])->name('posts');
     Route::get('posts/create', [PostController::class, 'create'])->name('posts.create');
