@@ -51,7 +51,7 @@ export function ProjectSection({ currentProject, projects }: ProjectSectionProps
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsCreating(true);
-    
+
     router.post('/projects', {
       ...formData,
       switch_to_project: true, // Switch to the new project after creation
@@ -74,7 +74,7 @@ export function ProjectSection({ currentProject, projects }: ProjectSectionProps
             <CollapsibleTrigger asChild>
               <SidebarMenuButton tooltip="Projects">
                 <FolderOpen className="h-4 w-4" />
-                <span>Projects</span>
+                <span>Projects {' '}<Badge>{projects.length}</Badge></span>
                 <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
               </SidebarMenuButton>
             </CollapsibleTrigger>
@@ -82,33 +82,33 @@ export function ProjectSection({ currentProject, projects }: ProjectSectionProps
               <SidebarMenuSub>
                 {projects.map((project) => (
                   <SidebarMenuSubItem key={project.id}>
-                    <SidebarMenuSubButton 
+                    <SidebarMenuSubButton
                       onClick={() => handleProjectSwitch(project.id)}
                       isActive={project.id === currentProject.id}
-                      className="flex items-center justify-between"
+                      className="flex items-center justify-between hover:cursor-pointer"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="truncate">{project.name}</span>
                         {project.is_default && (
-                          <Badge variant="secondary" className="text-xs h-4 px-1">
+                          <Badge variant="outline" className="text-xs h-4 px-1">
                             Default
                           </Badge>
                         )}
                       </div>
                       {project.id === currentProject.id && (
-                        <CheckCircle className="h-3 w-3 text-primary flex-shrink-0" />
+                        <CheckCircle className="h-3 w-3 text-primary flex-shrink-0 text-green-500" />
                       )}
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                 ))}
-                
+
                 <SidebarMenuSubItem>
-                  <SidebarMenuSubButton onClick={() => setShowCreateModal(true)}>
+                  <SidebarMenuSubButton className="hover:cursor-pointer" onClick={() => setShowCreateModal(true)}>
                     <Plus className="h-4 w-4" />
                     <span>New Project</span>
                   </SidebarMenuSubButton>
                 </SidebarMenuSubItem>
-                
+
                 <SidebarMenuSubItem>
                   <SidebarMenuSubButton onClick={() => router.get('/projects')}>
                     <Settings className="h-4 w-4" />
@@ -138,24 +138,24 @@ export function ProjectSection({ currentProject, projects }: ProjectSectionProps
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="project-description">Description (Optional)</Label>
               <Textarea
                 id="project-description"
                 value={formData.description}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => 
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
                 placeholder="Enter project description"
                 rows={3}
               />
             </div>
-            
+
             <div className="flex justify-end gap-2">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => setShowCreateModal(false)}
                 disabled={isCreating}
               >

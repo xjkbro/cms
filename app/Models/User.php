@@ -67,4 +67,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Media::class);
     }
+    
+    public function apiTokens()
+    {
+        return $this->hasMany(ApiToken::class);
+    }
 }

@@ -11,7 +11,7 @@ Route::post('/auth/login', [PostAPIController::class, 'login']);
 Route::post('/auth/logout', [PostAPIController::class, 'logout'])->middleware('auth:sanctum');
 
 // Protected routes (require authentication)
-Route::prefix('api')->middleware('auth:sanctum')->group(function () {
+Route::prefix('api')->middleware('api.token')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
