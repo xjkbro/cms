@@ -32,5 +32,10 @@ fi
 php artisan optimize
 php artisan storage:link || true
 
+chown -R www-data:www-data /var/www/storage
+chmod -R 775 /var/www/storage
+chmod 755 /var/www
+
+
 # Run php-fpm as PID 1
 exec php-fpm
