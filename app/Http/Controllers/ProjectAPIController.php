@@ -11,7 +11,7 @@ use OpenApi\Attributes as OA;
 class ProjectAPIController extends Controller
 {
     #[OA\Get(
-        path: "/api/projects",
+        path: "/projects",
         summary: "Get all projects for authenticated user",
         description: "Retrieve all projects belonging to the authenticated user",
         security: [["sanctum" => []]],
@@ -63,7 +63,7 @@ class ProjectAPIController extends Controller
     }
 
     #[OA\Get(
-        path: "/api/projects/{id}",
+        path: "/projects/{id}",
         summary: "Get a specific project",
         description: "Retrieve a specific project by ID with detailed information",
         security: [["sanctum" => []]],
@@ -139,7 +139,7 @@ class ProjectAPIController extends Controller
     }
 
     #[OA\Post(
-        path: "/api/projects",
+        path: "/projects",
         summary: "Create a new project",
         description: "Create a new project for the authenticated user",
         security: [["sanctum" => []]],
@@ -206,7 +206,7 @@ class ProjectAPIController extends Controller
     }
 
     #[OA\Put(
-        path: "/api/projects/{id}",
+        path: "/projects/{id}",
         summary: "Update a project",
         description: "Update an existing project",
         security: [["sanctum" => []]],
@@ -281,7 +281,7 @@ class ProjectAPIController extends Controller
     }
 
     #[OA\Delete(
-        path: "/api/projects/{id}",
+        path: "/projects/{id}",
         summary: "Delete a project",
         description: "Delete an existing project (cannot delete if it's the only project)",
         security: [["sanctum" => []]],
@@ -350,7 +350,7 @@ class ProjectAPIController extends Controller
     }
 
     #[OA\Post(
-        path: "/api/projects/{id}/make-default",
+        path: "/projects/{id}/make-default",
         summary: "Make a project the default",
         description: "Set a project as the default project for the user",
         security: [["sanctum" => []]],
@@ -402,7 +402,7 @@ class ProjectAPIController extends Controller
     }
 
     #[OA\Post(
-        path: "/api/projects/switch",
+        path: "/projects/switch",
         summary: "Switch current project",
         description: "Switch the current active project for API operations",
         security: [["sanctum" => []]],

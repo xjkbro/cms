@@ -12,14 +12,14 @@
         }
     ],
     "paths": {
-        "/api/categories": {
+        "/categories": {
             "get": {
                 "tags": [
                     "Categories"
                 ],
                 "summary": "Get all categories for current project",
                 "description": "Retrieve all categories belonging to the authenticated user's current project",
-                "operationId": "1ed4ff908736dcd40ee3e4e310026f04",
+                "operationId": "fabef82d4e2dba93de6801eb194d2890",
                 "parameters": [
                     {
                         "name": "project_id",
@@ -74,7 +74,7 @@
                 ],
                 "summary": "Create a new category",
                 "description": "Create a new category in the current project",
-                "operationId": "ed727c319659b28cccf5abfe98f39476",
+                "operationId": "4d54c5020ec9caa0a04f79155c16a44f",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -144,14 +144,14 @@
                 ]
             }
         },
-        "/api/categories/{id}": {
+        "/categories/{id}": {
             "get": {
                 "tags": [
                     "Categories"
                 ],
                 "summary": "Get a specific category",
                 "description": "Retrieve a specific category by ID",
-                "operationId": "6c51cc591d48d5dd9df48a308a6a3245",
+                "operationId": "127d2ef668d3a3f2fd4d7ec443ae384d",
                 "parameters": [
                     {
                         "name": "id",
@@ -203,7 +203,7 @@
                 ],
                 "summary": "Update a category",
                 "description": "Update an existing category",
-                "operationId": "5d7e918415da94fde48b2154c95bfd23",
+                "operationId": "e58c2a9b578f512d0d9eb3c1979e8e49",
                 "parameters": [
                     {
                         "name": "id",
@@ -287,7 +287,7 @@
                 ],
                 "summary": "Delete a category",
                 "description": "Delete an existing category",
-                "operationId": "3e799da6038a9d5bfbd270239265b11d",
+                "operationId": "3d1f98ff29364ac146d041b49c1fe9a3",
                 "parameters": [
                     {
                         "name": "id",
@@ -697,14 +697,14 @@
                 ]
             }
         },
-        "/api/projects": {
+        "/projects": {
             "get": {
                 "tags": [
                     "Projects"
                 ],
                 "summary": "Get all projects for authenticated user",
                 "description": "Retrieve all projects belonging to the authenticated user",
-                "operationId": "b307a7a22462266910e92846f08cfd60",
+                "operationId": "7122fd92143244269265cf8ee0d58bbc",
                 "parameters": [
                     {
                         "name": "include_stats",
@@ -756,7 +756,7 @@
                 ],
                 "summary": "Create a new project",
                 "description": "Create a new project for the authenticated user",
-                "operationId": "9704a537840d62fecde9690dd94fb04c",
+                "operationId": "f85728f789ad92eb2b7c8cabbe1a3629",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -831,14 +831,14 @@
                 ]
             }
         },
-        "/api/projects/{id}": {
+        "/projects/{id}": {
             "get": {
                 "tags": [
                     "Projects"
                 ],
                 "summary": "Get a specific project",
                 "description": "Retrieve a specific project by ID with detailed information",
-                "operationId": "f20a57ec4023ee2bd26baebf14ed4a12",
+                "operationId": "69943ff1a13a049777b0b358bb3c7176",
                 "parameters": [
                     {
                         "name": "id",
@@ -910,7 +910,7 @@
                 ],
                 "summary": "Update a project",
                 "description": "Update an existing project",
-                "operationId": "274d85e6728616751cf0a741fb5cba5b",
+                "operationId": "dbfb93c2ab407c8c23e0700cc6119bd1",
                 "parameters": [
                     {
                         "name": "id",
@@ -999,7 +999,7 @@
                 ],
                 "summary": "Delete a project",
                 "description": "Delete an existing project (cannot delete if it's the only project)",
-                "operationId": "0919affe7bd0633097364d0032af5866",
+                "operationId": "bab715fdf98ebfc3ee865028272f19e9",
                 "parameters": [
                     {
                         "name": "id",
@@ -1050,14 +1050,14 @@
                 ]
             }
         },
-        "/api/projects/{id}/make-default": {
+        "/projects/{id}/make-default": {
             "post": {
                 "tags": [
                     "Projects"
                 ],
                 "summary": "Make a project the default",
                 "description": "Set a project as the default project for the user",
-                "operationId": "18b25833dc90dedddf6653bde085bfb6",
+                "operationId": "050fdb94ae8dacfca45a4f0ceeb8cfcb",
                 "parameters": [
                     {
                         "name": "id",
@@ -1108,14 +1108,14 @@
                 ]
             }
         },
-        "/api/projects/switch": {
+        "/projects/switch": {
             "post": {
                 "tags": [
                     "Projects"
                 ],
                 "summary": "Switch current project",
                 "description": "Switch the current active project for API operations",
-                "operationId": "8c66fc7340cddf375b91176321961017",
+                "operationId": "dce5ab4a8b9eaea7b509b4429afa4e65",
                 "requestBody": {
                     "required": true,
                     "content": {

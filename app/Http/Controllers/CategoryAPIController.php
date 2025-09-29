@@ -12,7 +12,7 @@ use OpenApi\Attributes as OA;
 class CategoryAPIController extends Controller
 {
     #[OA\Get(
-        path: "/api/categories",
+        path: "/categories",
         summary: "Get all categories for current project",
         description: "Retrieve all categories belonging to the authenticated user's current project",
         security: [["sanctum" => []]],
@@ -49,7 +49,7 @@ class CategoryAPIController extends Controller
     public function index(Request $request)
     {
         $projectId = $request->get('project_id') ?? session('current_project_id');
-        
+
         if (!$projectId) {
             // Get user's default project
             $project = Auth::user()->projects()->where('is_default', true)->first();
@@ -87,7 +87,7 @@ class CategoryAPIController extends Controller
     }
 
     #[OA\Get(
-        path: "/api/categories/{id}",
+        path: "/categories/{id}",
         summary: "Get a specific category",
         description: "Retrieve a specific category by ID",
         security: [["sanctum" => []]],
@@ -141,7 +141,7 @@ class CategoryAPIController extends Controller
     }
 
     #[OA\Post(
-        path: "/api/categories",
+        path: "/categories",
         summary: "Create a new category",
         description: "Create a new category in the current project",
         security: [["sanctum" => []]],
@@ -228,7 +228,7 @@ class CategoryAPIController extends Controller
     }
 
     #[OA\Put(
-        path: "/api/categories/{id}",
+        path: "/categories/{id}",
         summary: "Update a category",
         description: "Update an existing category",
         security: [["sanctum" => []]],
@@ -315,7 +315,7 @@ class CategoryAPIController extends Controller
     }
 
     #[OA\Delete(
-        path: "/api/categories/{id}",
+        path: "/categories/{id}",
         summary: "Delete a category",
         description: "Delete an existing category",
         security: [["sanctum" => []]],
