@@ -18,7 +18,7 @@ return new class extends Migration
             $table->enum('contribution_type', ['primary', 'co-author', 'contributor'])->default('co-author');
             $table->integer('order')->default(0); // For ordering authors
             $table->timestamps();
-            
+
             $table->unique(['post_id', 'user_id']);
         });
     }

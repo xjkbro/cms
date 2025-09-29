@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Plus, MoreHorizontal, Edit, Trash2, CheckCircle, Settings } from 'lucide-react';
 
@@ -46,7 +46,7 @@ export default function ProjectsIndex({ projects }: ProjectsIndexProps) {
       ]}
     >
       <Head title="Projects" />
-      
+
       <div className="flex h-full flex-1 flex-col gap-6 p-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -88,7 +88,7 @@ export default function ProjectsIndex({ projects }: ProjectsIndexProps) {
                       </CardDescription>
                     )}
                   </div>
-                  
+
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -114,7 +114,7 @@ export default function ProjectsIndex({ projects }: ProjectsIndexProps) {
                           Make Default
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => handleDelete(project.id)}
                         className="text-destructive"
                       >
@@ -125,7 +125,7 @@ export default function ProjectsIndex({ projects }: ProjectsIndexProps) {
                   </DropdownMenu>
                 </div>
               </CardHeader>
-              
+
               <CardContent className="pt-0">
                 <div className="space-y-4">
                   {/* Stats */}
@@ -142,9 +142,9 @@ export default function ProjectsIndex({ projects }: ProjectsIndexProps) {
 
                   {/* Actions */}
                   <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="flex-1"
                       asChild
                     >
@@ -157,7 +157,7 @@ export default function ProjectsIndex({ projects }: ProjectsIndexProps) {
                       </Link>
                     </Button>
                   </div>
-                  
+
                   <div className="text-xs text-muted-foreground">
                     Created {new Date(project.created_at).toLocaleDateString()}
                   </div>

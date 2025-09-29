@@ -31,7 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     Route::post('projects/{project}/make-default', [ProjectController::class, 'makeDefault'])->name('projects.make-default');
     Route::post('projects/switch', [ProjectController::class, 'switch'])->name('projects.switch');
-    
+
     // Project collaboration
     Route::get('projects/{project}/collaboration', [\App\Http\Controllers\ProjectCollaborationController::class, 'index'])->name('projects.collaboration');
     Route::post('projects/{project}/invite', [\App\Http\Controllers\ProjectCollaborationController::class, 'invite'])->name('projects.invite');

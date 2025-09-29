@@ -115,7 +115,7 @@
 
         <div class="content">
             <p>Hello!</p>
-            
+
             <p><strong>{{ $invitedBy->name }}</strong> has invited you to collaborate on their project.</p>
 
             <div class="project-info">
@@ -124,7 +124,7 @@
                     <p style="margin: 10px 0; color: #6b7280;">{{ $project->description }}</p>
                 @endif
                 <div style="margin-top: 15px;">
-                    <strong>Your role:</strong> 
+                    <strong>Your role:</strong>
                     <span class="role-badge">{{ $invitation->role }}</span>
                 </div>
             </div>

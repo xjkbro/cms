@@ -14,7 +14,7 @@ class CategoryController extends Controller
     public function index(Request $request)
     {
         $currentProject = $request->attributes->get('current_project');
-        
+
         // Check if user has access to this project
         if (!$currentProject->canUserView($request->user())) {
             abort(403);
@@ -23,7 +23,7 @@ class CategoryController extends Controller
         // Get categories from all project collaborators
         $collaboratorIds = $currentProject->collaborators()->pluck('users.id')->toArray();
         $userIds = array_merge([$currentProject->user_id], $collaboratorIds);
-        
+
         return Inertia::render('categories/categories', [
             'categories' => Category::whereIn('user_id', $userIds)
                 ->where('project_id', $currentProject->id)
@@ -39,12 +39,12 @@ class CategoryController extends Controller
     public function create(Request $request)
     {
         $currentProject = $request->attributes->get('current_project');
-        
+
         // Check if user can edit in this project
         if (!$currentProject->canUserEdit($request->user())) {
             abort(403);
         }
-        
+
         return Inertia::render('categories/edit', [
             'category' => null,
         ]);
@@ -56,12 +56,12 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $currentProject = $request->attributes->get('current_project');
-        
+
         // Check if user can edit in this project
         if (!$currentProject->canUserEdit($request->user())) {
             abort(403);
         }
-        
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -104,7 +104,7 @@ class CategoryController extends Controller
     public function edit(Request $request, Category $category)
     {
         $currentProject = $request->attributes->get('current_project');
-        
+
         // Ensure the category belongs to the current project
         if ($category->project_id !== $currentProject->id) {
             abort(404);
@@ -118,11 +118,11 @@ class CategoryController extends Controller
         // Ensure the category belongs to a project collaborator
         $collaboratorIds = $currentProject->collaborators()->pluck('users.id')->toArray();
         $userIds = array_merge([$currentProject->user_id], $collaboratorIds);
-        
+
         if (!in_array($category->user_id, $userIds)) {
             abort(404);
         }
-        
+
         return Inertia::render('categories/edit', [
             'category' => $category,
         ]);
@@ -134,7 +134,7 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category)
     {
         $currentProject = $request->attributes->get('current_project');
-        
+
         // Ensure the category belongs to the current project
         if ($category->project_id !== $currentProject->id) {
             abort(404);
@@ -148,11 +148,11 @@ class CategoryController extends Controller
         // Ensure the category belongs to a project collaborator
         $collaboratorIds = $currentProject->collaborators()->pluck('users.id')->toArray();
         $userIds = array_merge([$currentProject->user_id], $collaboratorIds);
-        
+
         if (!in_array($category->user_id, $userIds)) {
             abort(404);
         }
-        
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -181,7 +181,7 @@ class CategoryController extends Controller
     public function destroy(Request $request, Category $category)
     {
         $currentProject = $request->attributes->get('current_project');
-        
+
         // Ensure the category belongs to the current project
         if ($category->project_id !== $currentProject->id) {
             abort(404);
@@ -195,11 +195,11 @@ class CategoryController extends Controller
         // Ensure the category belongs to a project collaborator
         $collaboratorIds = $currentProject->collaborators()->pluck('users.id')->toArray();
         $userIds = array_merge([$currentProject->user_id], $collaboratorIds);
-        
+
         if (!in_array($category->user_id, $userIds)) {
             abort(404);
         }
-        
+
         $category->delete();
         return redirect()->route('categories');
     }

@@ -48,7 +48,7 @@ const roleColors = {
 
 export default function Collaboration({ project, collaborators, pendingInvitations }: CollaborationProps) {
     const [showInviteForm, setShowInviteForm] = useState(false);
-    
+
     const inviteForm = useForm({
         email: '',
         role: 'editor' as 'admin' | 'editor' | 'viewer',
@@ -85,14 +85,14 @@ export default function Collaboration({ project, collaborators, pendingInvitatio
     return (
         <AppLayout>
             <Head title={`${project.name} - Collaboration`} />
-            
+
             <div className="p-6 space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold">Project Collaboration</h1>
                         <p className="text-muted-foreground">Manage team members and permissions for {project.name}</p>
                     </div>
-                    <Button 
+                    <Button
                         onClick={() => setShowInviteForm(true)}
                         disabled={showInviteForm}
                     >
@@ -141,9 +141,9 @@ export default function Collaboration({ project, collaborators, pendingInvitatio
                                     <Button type="submit" disabled={inviteForm.processing}>
                                         Send Invitation
                                     </Button>
-                                    <Button 
-                                        type="button" 
-                                        variant="outline" 
+                                    <Button
+                                        type="button"
+                                        variant="outline"
                                         onClick={() => setShowInviteForm(false)}
                                     >
                                         Cancel
@@ -186,7 +186,7 @@ export default function Collaboration({ project, collaborators, pendingInvitatio
                                     <TableCell>-</TableCell>
                                     <TableCell className="text-right">-</TableCell>
                                 </TableRow>
-                                
+
                                 {/* Collaborators */}
                                 {collaborators.map((collaborator) => (
                                     <TableRow key={collaborator.id}>
@@ -202,7 +202,7 @@ export default function Collaboration({ project, collaborators, pendingInvitatio
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
-                                            {collaborator.pivot?.joined_at && 
+                                            {collaborator.pivot?.joined_at &&
                                                 new Date(collaborator.pivot.joined_at).toLocaleDateString()
                                             }
                                         </TableCell>

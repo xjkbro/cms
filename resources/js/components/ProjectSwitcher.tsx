@@ -66,7 +66,7 @@ export function ProjectSwitcher({ currentProject, projects }: ProjectSwitcherPro
           Switch Project
         </div>
         <DropdownMenuSeparator />
-        
+
         {projects.map((project) => (
           <DropdownMenuItem
             key={project.id}
@@ -93,7 +93,7 @@ export function ProjectSwitcher({ currentProject, projects }: ProjectSwitcherPro
             )}
           </DropdownMenuItem>
         ))}
-        
+
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleManageProjects}>
           <Settings className="h-4 w-4 mr-2" />

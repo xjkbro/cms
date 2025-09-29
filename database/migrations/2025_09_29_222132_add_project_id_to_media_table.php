@@ -19,14 +19,14 @@ return new class extends Migration
         // Update existing media to associate with the user's default project
         // This ensures backward compatibility
         DB::statement('
-            UPDATE media 
+            UPDATE media
             SET project_id = (
-                SELECT p.id 
-                FROM projects p 
-                WHERE p.user_id = media.user_id 
-                AND p.is_default = true 
+                SELECT p.id
+                FROM projects p
+                WHERE p.user_id = media.user_id
+                AND p.is_default = true
                 LIMIT 1
-            ) 
+            )
             WHERE project_id IS NULL
         ');
     }

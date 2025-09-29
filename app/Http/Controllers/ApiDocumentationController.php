@@ -17,12 +17,12 @@ use Illuminate\Http\Request;
  *         url="https://opensource.org/licenses/MIT"
  *     )
  * )
- * 
+ *
  * @OA\Server(
  *     url=L5_SWAGGER_CONST_HOST,
  *     description="API Server"
  * )
- * 
+ *
  * @OA\SecurityScheme(
  *     securityScheme="sanctum",
  *     type="http",
@@ -30,37 +30,37 @@ use Illuminate\Http\Request;
  *     bearerFormat="JWT",
  *     description="Laravel Sanctum token authentication"
  * )
- * 
+ *
  * @OA\Tag(
  *     name="Authentication",
  *     description="User authentication and registration endpoints"
  * )
- * 
+ *
  * @OA\Tag(
  *     name="Projects",
  *     description="Project management and collaboration endpoints"
  * )
- * 
+ *
  * @OA\Tag(
  *     name="Posts",
  *     description="Blog posts and content management endpoints with multi-author support"
  * )
- * 
+ *
  * @OA\Tag(
  *     name="Categories",
  *     description="Content categorization endpoints"
  * )
- * 
+ *
  * @OA\Tag(
  *     name="Media",
  *     description="File upload and media management endpoints"
  * )
- * 
+ *
  * @OA\Tag(
  *     name="Collaboration",
  *     description="Project collaboration and team management endpoints"
  * )
- * 
+ *
  * @OA\Tag(
  *     name="Analytics",
  *     description="Page views and content analytics endpoints"

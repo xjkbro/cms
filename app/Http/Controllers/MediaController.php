@@ -65,7 +65,7 @@ class MediaController extends Controller
      *         )
      *     )
      * )
-     * 
+     *
      * Display a listing of the resource.
      */
     public function index(Request $request)
@@ -132,7 +132,7 @@ class MediaController extends Controller
      *     @OA\Response(response=422, description="Validation error"),
      *     @OA\Response(response=500, description="Upload failed")
      * )
-     * 
+     *
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -278,11 +278,11 @@ class MediaController extends Controller
     public function image(Request $request, Media $media)
     {
         $user = $request->user();
-        
+
         // Check if user has access to this media through project collaboration
         if ($user) {
             $accessibleProjectIds = $this->getAccessibleProjectIds($user);
-            
+
             if (!in_array($media->project_id, $accessibleProjectIds)) {
                 abort(403);
             }

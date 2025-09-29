@@ -47,27 +47,27 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    
+
     public function projects()
     {
         return $this->hasMany(Project::class);
     }
-    
+
     public function posts()
     {
         return $this->hasMany(Post::class);
     }
-    
+
     public function categories()
     {
         return $this->hasMany(Category::class);
     }
-    
+
     public function media()
     {
         return $this->hasMany(Media::class);
     }
-    
+
     public function apiTokens()
     {
         return $this->hasMany(ApiToken::class);

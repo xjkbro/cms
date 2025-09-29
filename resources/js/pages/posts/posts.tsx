@@ -86,7 +86,7 @@ export default function Posts({posts, tags}: PostsProps) {
                 const post = info.row.original;
                 const primaryAuthor = post.user?.name;
                 const coAuthors = post.authors?.filter(author => author.id !== post.user?.id);
-                
+
                 if (coAuthors && coAuthors.length > 0) {
                     const coAuthorNames = coAuthors.map(author => author.name).join(', ');
                     return (
@@ -96,7 +96,7 @@ export default function Posts({posts, tags}: PostsProps) {
                         </div>
                     );
                 }
-                
+
                 return primaryAuthor;
             },
             enableSorting: true,

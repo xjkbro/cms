@@ -16,27 +16,27 @@ class DashboardController extends Controller
         $user = Auth::user();
         $currentProject = $request->attributes->get('current_project');
         $timeframe = $request->get('timeframe', 'all'); // 'all', 'year', 'month'
-        
+
         // Get all user IDs who have access to this project
         $collaboratorIds = $currentProject->collaborators()->pluck('users.id')->toArray();
         $userIds = array_merge([$currentProject->user_id], $collaboratorIds);
-        
+
         // Basic statistics for the current project (from all collaborators)
         $publishedPosts = Post::whereIn('user_id', $userIds)
             ->where('project_id', $currentProject->id)
             ->where('is_draft', false)
             ->count();
-            
+
         $draftPosts = Post::whereIn('user_id', $userIds)
             ->where('project_id', $currentProject->id)
             ->where('is_draft', true)
             ->count();
-            
+
         $totalCategories = Category::where('project_id', $currentProject->id)->count();
-        
+
         // Posts over time data
         $postsOverTime = $this->getPostsOverTime($userIds, $currentProject->id, $timeframe);
-        
+
         return Inertia::render('dashboard', [
             'stats' => [
                 'published_posts' => $publishedPosts,
@@ -49,13 +49,13 @@ class DashboardController extends Controller
             'current_project' => $currentProject,
         ]);
     }
-    
+
     private function getPostsOverTime($userIds, $projectId, $timeframe)
     {
         $query = Post::whereIn('user_id', $userIds)
             ->where('project_id', $projectId)
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'));
-            
+
         switch ($timeframe) {
             case 'year':
                 $query->where('created_at', '>=', now()->subYear());
@@ -68,21 +68,21 @@ class DashboardController extends Controller
                 // No additional where clause needed
                 break;
         }
-        
+
         $data = $query->groupBy(DB::raw('DATE(created_at)'))
             ->orderBy('date')
             ->get();
-            
+
         // Fill in missing dates with 0 counts for better visualization
         return $this->fillMissingDates($data, $timeframe);
     }
-    
+
     private function fillMissingDates($data, $timeframe)
     {
         $result = [];
         $startDate = now();
         $endDate = now();
-        
+
         switch ($timeframe) {
             case 'year':
                 $startDate = now()->subYear();
@@ -99,11 +99,11 @@ class DashboardController extends Controller
                 $endDate = $data->last()->date ? now()->parse($data->last()->date) : now();
                 break;
         }
-        
+
         // Create a collection of all dates in range
         $dataByDate = $data->keyBy('date');
         $currentDate = $startDate->copy();
-        
+
         while ($currentDate <= $endDate) {
             $dateStr = $currentDate->format('Y-m-d');
             $result[] = [
@@ -113,7 +113,7 @@ class DashboardController extends Controller
             ];
             $currentDate->addDay();
         }
-        
+
         return $result;
     }
 }

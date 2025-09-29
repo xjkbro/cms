@@ -46,7 +46,7 @@ class PostController extends Controller
     public function create(Request $request)
     {
         $currentProject = $request->attributes->get('current_project');
-        
+
         // Check if user can edit in this project
         if (!$currentProject->canUserEdit($request->user())) {
             abort(403);
@@ -55,11 +55,11 @@ class PostController extends Controller
         // Get categories from all project collaborators
         $collaboratorIds = $currentProject->collaborators()->pluck('users.id')->toArray();
         $userIds = array_merge([$currentProject->user_id], $collaboratorIds);
-        
+
         $categories = \App\Models\Category::whereIn('user_id', $userIds)
             ->where('project_id', $currentProject->id)
             ->get();
-            
+
         return Inertia::render('posts/edit', [
             'categories' => $categories,
             'existingTags' => [],
@@ -145,24 +145,24 @@ class PostController extends Controller
     public function show(Request $request, Post $post, PageViewService $pageViewService)
     {
         $currentProject = $request->attributes->get('current_project');
-        
+
         // Check if user has access to this project
         if (!$currentProject || $post->project_id !== $currentProject->id) {
             abort(404);
         }
-        
+
         if (!$currentProject->canUserView($request->user())) {
             abort(403);
         }
-        
+
         // Track page view (only for non-draft posts)
         if (!$post->is_draft) {
             $pageViewService->trackView($post, $request);
         }
-        
+
         // Load relationships
         $post->load(['category', 'user', 'tags', 'authors', 'project']);
-        
+
         return Inertia::render('posts/show', [
             'post' => $post,
             'viewsCount' => $pageViewService->getViewsCount($post->id),
@@ -184,9 +184,9 @@ class PostController extends Controller
 
         // Check if user can edit this post
         // Post authors, project editors, admins, and owners can edit
-        $canEdit = $post->hasAuthor($request->user()) || 
+        $canEdit = $post->hasAuthor($request->user()) ||
                    $currentProject->canUserEdit($request->user());
-                   
+
         if (!$canEdit) {
             abort(403);
         }
@@ -194,7 +194,7 @@ class PostController extends Controller
         // Get categories from all project collaborators
         $collaboratorIds = $currentProject->collaborators()->pluck('users.id')->toArray();
         $userIds = array_merge([$currentProject->user_id], $collaboratorIds);
-        
+
         $categories = \App\Models\Category::whereIn('user_id', $userIds)
             ->where('project_id', $currentProject->id)
             ->get();
@@ -224,9 +224,9 @@ class PostController extends Controller
 
         // Check if user can edit this post
         // Post authors, project editors, admins, and owners can edit
-        $canEdit = $post->hasAuthor($request->user()) || 
+        $canEdit = $post->hasAuthor($request->user()) ||
                    $currentProject->canUserEdit($request->user());
-                   
+
         if (!$canEdit) {
             abort(403);
         }
@@ -303,9 +303,9 @@ class PostController extends Controller
         }
 
         // Only allow deletion by post owner or project owner/admin
-        $canDelete = $post->user_id === $request->user()->id || 
+        $canDelete = $post->user_id === $request->user()->id ||
                      $currentProject->canUserAdmin($request->user());
-                     
+
         if (!$canDelete) {
             abort(403);
         }

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->enum('role', ['owner', 'admin', 'editor', 'viewer'])->default('editor');
             $table->timestamp('joined_at')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['project_id', 'user_id']);
         });
     }

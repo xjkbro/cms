@@ -13,29 +13,29 @@ class PageViewService
     private const CACHE_PREFIX = 'post_views:';
     private const DAILY_CACHE_PREFIX = 'post_views_daily:';
     private const RECENT_VIEW_PREFIX = 'recent_view:';
-    
+
     private bool $useRedis;
-    
+
     public function __construct()
     {
         // Check if Redis is configured and available
         $this->useRedis = $this->isRedisAvailable();
     }
-    
+
     /**
      * Check if Redis is available and configured
      */
     private function isRedisAvailable(): bool
     {
         try {
-            return config('database.redis.default.host') !== null && 
+            return config('database.redis.default.host') !== null &&
                    config('cache.default') === 'redis' &&
                    Cache::store('redis')->get('test') !== false;
         } catch (\Exception $e) {
             return false;
         }
     }
-    
+
     /**
      * Track a page view for a post
      */
@@ -45,15 +45,15 @@ class PageViewService
         $userId = $request->user()?->id;
         $userAgent = $request->userAgent();
         $referer = $request->header('referer');
-        
+
         // Check for recent view to prevent spam
         if ($this->hasRecentView($post->id, $ipAddress, $userId)) {
             return false;
         }
-        
+
         // Mark this IP/user as having viewed recently
         $this->markRecentView($post->id, $ipAddress, $userId);
-        
+
         if ($this->useRedis) {
             // Use Redis for high-performance counting
             $this->incrementRedisCounter($post->id);
@@ -62,10 +62,10 @@ class PageViewService
             // Direct database approach - simpler but works perfectly fine
             $this->recordViewDirectly($post, $ipAddress, $userId, $userAgent, $referer);
         }
-        
+
         return true;
     }
-    
+
     /**
      * Get total views for a post
      */
@@ -86,7 +86,7 @@ class PageViewService
             return $post ? $post->views_count : 0;
         }
     }
-    
+
     /**
      * Get today's views for a post
      */
@@ -94,7 +94,7 @@ class PageViewService
     {
         if ($this->useRedis) {
             $cacheKey = self::DAILY_CACHE_PREFIX . date('Y-m-d') . ':' . $postId;
-            
+
             return (int) Cache::remember(
                 $cacheKey,
                 now()->endOfDay(),
@@ -111,36 +111,36 @@ class PageViewService
                 ->count();
         }
     }
-    
+
     /**
      * Get popular posts by views
      */
     public function getPopularPosts(int $limit = 10, string $period = 'all'): \Illuminate\Database\Eloquent\Collection
     {
         $query = Post::with(['user', 'category', 'project']);
-        
+
         switch ($period) {
             case 'today':
                 return $query->withCount(['views as today_views_count' => function ($query) {
                     $query->whereDate('created_at', today());
                 }])->orderBy('today_views_count', 'desc')->limit($limit)->get();
-                
+
             case 'week':
                 return $query->withCount(['views as week_views_count' => function ($query) {
                     $query->where('created_at', '>=', now()->startOfWeek());
                 }])->orderBy('week_views_count', 'desc')->limit($limit)->get();
-                
+
             case 'month':
                 return $query->withCount(['views as month_views_count' => function ($query) {
                     $query->whereMonth('created_at', now()->month)
                           ->whereYear('created_at', now()->year);
                 }])->orderBy('month_views_count', 'desc')->limit($limit)->get();
-                
+
             default:
                 return $query->orderBy('views_count', 'desc')->limit($limit)->get();
         }
     }
-    
+
     /**
      * Sync Redis counters to database (only needed when using Redis)
      */
@@ -150,16 +150,16 @@ class PageViewService
             // No syncing needed in database-only mode
             return;
         }
-        
+
         try {
             $redis = Redis::connection();
             $pattern = self::CACHE_PREFIX . '*';
             $keys = $redis->keys($pattern);
-            
+
             foreach ($keys as $key) {
                 $postId = str_replace(self::CACHE_PREFIX, '', $key);
                 $redisCount = (int) Cache::get($key, 0);
-                
+
                 if ($redisCount > 0) {
                     Post::where('id', $postId)->increment('views_count', $redisCount);
                     Cache::forget($key); // Clear the counter after syncing
@@ -169,7 +169,7 @@ class PageViewService
             logger()->warning('Redis sync failed for page views: ' . $e->getMessage());
         }
     }
-    
+
     /**
      * Get client IP address
      */
@@ -198,7 +198,7 @@ class PageViewService
 
         return $request->ip();
     }
-    
+
     /**
      * Record view directly to database (non-Redis mode)
      */
@@ -213,7 +213,7 @@ class PageViewService
             'referer' => $referer,
             'viewed_at' => now(),
         ]);
-        
+
         // Immediately increment the counter
         $post->increment('views_count');
     }
@@ -235,7 +235,7 @@ class PageViewService
                 ->exists();
         }
     }
-    
+
     /**
      * Mark IP/user as having viewed recently
      */
@@ -247,7 +247,7 @@ class PageViewService
         }
         // For non-Redis mode, the database check in hasRecentView() is sufficient
     }
-    
+
     /**
      * Increment Redis counter
      */
@@ -255,13 +255,13 @@ class PageViewService
     {
         $key = self::CACHE_PREFIX . $postId;
         Cache::increment($key, 1);
-        
+
         // Set expiry if this is a new key
         if (!Cache::has($key . ':ttl')) {
             Cache::put($key . ':ttl', true, now()->addMinutes(10));
         }
     }
-    
+
     /**
      * Queue view record for database insertion
      */
@@ -269,7 +269,7 @@ class PageViewService
     {
         // For now, insert directly. In production, you'd dispatch a job:
         // dispatch(new RecordPageView($postId, $ipAddress, $userId, $userAgent, $referer));
-        
+
         PostView::create([
             'post_id' => $postId,
             'user_id' => $userId,
