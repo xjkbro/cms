@@ -3,10 +3,11 @@ import { posts as postsRoute } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
-import { createColumnHelper, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, useReactTable, flexRender } from '@tanstack/react-table';
+import { createColumnHelper, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable, flexRender, type SortingState } from '@tanstack/react-table';
 import { Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -25,7 +26,7 @@ type Post = {
     user: any;
     content: string;
     excerpt: string | null;
-    tags: string | null;
+    tags: Tag[];
     is_draft: boolean;
     created_at: string;
     updated_at: string;
@@ -42,37 +43,55 @@ type Category = {
     updated_at: string;
 };
 
+type Tag = {
+    id: number;
+    name: string;
+    slug: string;
+};
+
 interface PostsProps {
     posts: Post[];
     categories: Category[];
+    tags: Tag[];
 }
 
-export default function Posts({posts}: PostsProps) {
+export default function Posts({posts, tags}: PostsProps) {
     const [globalFilter, setGlobalFilter] = useState('');
+    const [tagFilter, setTagFilter] = useState<string>('');
+    const [sorting, setSorting] = useState<SortingState>([]);
     const columnHelper = createColumnHelper<Post>();
 
     const columns = useMemo(() => [
         columnHelper.accessor('title', {
             header: 'Title',
             cell: info => info.getValue(),
+            enableSorting: true,
         }),
         columnHelper.accessor(row => row.category?.name ?? 'Uncategorized', {
             id: 'category',
             header: 'Category',
             cell: info => info.getValue(),
+            enableSorting: true,
         }),
         columnHelper.accessor(row => row.user?.name ?? '', {
             id: 'author',
             header: 'Author',
             cell: info => info.getValue(),
+            enableSorting: true,
         }),
         columnHelper.accessor('excerpt', {
             header: 'Excerpt',
             cell: info => info.getValue(),
         }),
+        columnHelper.accessor(row => row.tags.map(tag => tag.name).join(', '), {
+            id: 'tags',
+            header: 'Tags',
+            cell: info => info.getValue(),
+        }),
         columnHelper.accessor('is_draft', {
             header: 'Status',
             cell: info => info.getValue() ? 'Draft' : 'Published',
+            enableSorting: true,
         }),
         columnHelper.accessor(row => row.id, {
             id: 'actions',
@@ -104,16 +123,29 @@ export default function Posts({posts}: PostsProps) {
         }),
     ], [columnHelper]);
 
-    const table = useReactTable({
-        data: posts,
+    // Apply tag filter
+    const filteredData = useMemo(() => {
+        if (!tagFilter) return posts;
+        return posts.filter(post => post.tags.some(tag => tag.name === tagFilter));
+    }, [posts, tagFilter]);
+
+    const filteredTable = useReactTable({
+        data: filteredData,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
-        globalFilterFn: 'includesString',
+        getSortedRowModel: getSortedRowModel(),
+        globalFilterFn: (row, columnId, filterValue) => {
+            if (!filterValue) return true;
+            const value = row.getValue(columnId);
+            return String(value).toLowerCase().includes(filterValue.toLowerCase());
+        },
         onGlobalFilterChange: setGlobalFilter,
+        onSortingChange: setSorting,
         state: {
             globalFilter,
+            sorting,
         },
         initialState: {
             pagination: {
@@ -132,28 +164,61 @@ export default function Posts({posts}: PostsProps) {
                 </Button>
             </div>
             <div className="px-4">
-                <Input
-                    placeholder="Search posts..."
-                    value={globalFilter ?? ''}
-                    onChange={(event) => setGlobalFilter(String(event.target.value))}
-                    className="max-w-sm"
-                />
+                <div className="flex gap-4">
+                    <Input
+                        placeholder="Search posts..."
+                        value={globalFilter ?? ''}
+                        onChange={(event) => setGlobalFilter(String(event.target.value))}
+                        className="max-w-sm"
+                    />
+                    <Select value={tagFilter} onValueChange={setTagFilter}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Filter by tag" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem disabled value="all">All tags</SelectItem>
+                            {tags.map((tag) => (
+                                <SelectItem key={tag.id} value={tag.name}>
+                                    {tag.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <Table>
                     <TableHeader>
-                        {table.getHeaderGroups().map(headerGroup => (
+                        {filteredTable.getHeaderGroups().map(headerGroup => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map(header => (
                                     <TableHead key={header.id}>
-                                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                                        {header.isPlaceholder ? null : (
+                                            <div
+                                                className={header.column.getCanSort() ? 'cursor-pointer select-none flex items-center gap-2' : ''}
+                                                onClick={header.column.getToggleSortingHandler()}
+                                            >
+                                                {flexRender(header.column.columnDef.header, header.getContext())}
+                                                {{
+                                                    asc: '↑',
+                                                    desc: '↓',
+                                                }[header.column.getIsSorted() as string] ?? null}
+                                            </div>
+                                        )}
                                     </TableHead>
                                 ))}
                             </TableRow>
                         ))}
                     </TableHeader>
                     <TableBody>
-                        {table.getRowModel().rows.map(row => (
+                        {filteredTable.getRowModel().rows.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={filteredTable.getAllColumns().length} className="text-center text-muted-foreground">
+                                    No posts found.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            filteredTable.getRowModel().rows.map(row => (
                             <TableRow key={row.id}>
                                 {row.getVisibleCells().map(cell => (
                                     <TableCell key={cell.id}>
@@ -161,21 +226,22 @@ export default function Posts({posts}: PostsProps) {
                                     </TableCell>
                                 ))}
                             </TableRow>
-                        ))}
+                        ))
+                        )}
                     </TableBody>
                 </Table>
                 <div className="flex items-center justify-between px-2">
                     <div className="flex-1 text-sm text-muted-foreground">
-                        {table.getFilteredSelectedRowModel().rows.length} of{' '}
-                        {table.getFilteredRowModel().rows.length} row(s) selected.
+                        {filteredTable.getFilteredSelectedRowModel().rows.length} of{' '}
+                        {filteredTable.getFilteredRowModel().rows.length} row(s) selected.
                     </div>
                     <div className="flex items-center space-x-6 lg:space-x-8">
                         <div className="flex items-center space-x-2">
                             <p className="text-sm font-medium">Rows per page</p>
                             <select
-                                value={table.getState().pagination.pageSize}
+                                value={filteredTable.getState().pagination.pageSize}
                                 onChange={e => {
-                                    table.setPageSize(Number(e.target.value))
+                                    filteredTable.setPageSize(Number(e.target.value))
                                 }}
                                 className="h-8 w-[70px] rounded border border-input bg-background"
                             >
@@ -187,15 +253,15 @@ export default function Posts({posts}: PostsProps) {
                             </select>
                         </div>
                         <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                            Page {table.getState().pagination.pageIndex + 1} of{' '}
-                            {table.getPageCount()}
+                            Page {filteredTable.getState().pagination.pageIndex + 1} of{' '}
+                            {filteredTable.getPageCount()}
                         </div>
                         <div className="flex items-center space-x-2">
                             <Button
                                 variant="outline"
                                 className="h-8 w-8 p-0"
-                                onClick={() => table.setPageIndex(0)}
-                                disabled={!table.getCanPreviousPage()}
+                                onClick={() => filteredTable.setPageIndex(0)}
+                                disabled={!filteredTable.getCanPreviousPage()}
                             >
                                 <span className="sr-only">Go to first page</span>
                                 {'<<'}
@@ -203,8 +269,8 @@ export default function Posts({posts}: PostsProps) {
                             <Button
                                 variant="outline"
                                 className="h-8 w-8 p-0"
-                                onClick={() => table.previousPage()}
-                                disabled={!table.getCanPreviousPage()}
+                                onClick={() => filteredTable.previousPage()}
+                                disabled={!filteredTable.getCanPreviousPage()}
                             >
                                 <span className="sr-only">Go to previous page</span>
                                 {'<'}
@@ -212,8 +278,8 @@ export default function Posts({posts}: PostsProps) {
                             <Button
                                 variant="outline"
                                 className="h-8 w-8 p-0"
-                                onClick={() => table.nextPage()}
-                                disabled={!table.getCanNextPage()}
+                                onClick={() => filteredTable.nextPage()}
+                                disabled={!filteredTable.getCanNextPage()}
                             >
                                 <span className="sr-only">Go to next page</span>
                                 {'>'}
@@ -221,8 +287,8 @@ export default function Posts({posts}: PostsProps) {
                             <Button
                                 variant="outline"
                                 className="h-8 w-8 p-0"
-                                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                                disabled={!table.getCanNextPage()}
+                                onClick={() => filteredTable.setPageIndex(filteredTable.getPageCount() - 1)}
+                                disabled={!filteredTable.getCanNextPage()}
                             >
                                 <span className="sr-only">Go to last page</span>
                                 {'>>'}

@@ -16,7 +16,6 @@ class Post extends Model
         'slug',
         'excerpt',
         'content',
-        'tags',
         'is_draft',
     ];
 
@@ -39,14 +38,19 @@ class Post extends Model
     {
         return $this->belongsTo(User::class);
     }
-    
+
     public function project()
     {
         return $this->belongsTo(Project::class);
     }
-    
+
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class);
     }
 }

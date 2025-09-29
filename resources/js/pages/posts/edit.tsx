@@ -12,15 +12,16 @@ import Link from '@tiptap/extension-link';
 
 import MarkdownIt from 'markdown-it';
 import TurndownService from 'turndown';
-import { MediaBrowser } from '@/components/MediaBrowser';
+import { TagInput } from '@/components/TagInput';
 import { Switch } from '@/components/ui/switch';
+import { MediaBrowser } from '@/components/MediaBrowser';
 
 interface PostFormData {
     title: string;
     content: string;
     category_id: string | number;
     excerpt: string;
-    tags: string;
+    tags: string[];
     is_draft?: boolean;
 }
 
@@ -30,7 +31,7 @@ interface Post {
     content: string;
     category_id: number;
     excerpt: string;
-    tags: string;
+    tags: Tag[];
 }
 
 interface Category {
@@ -38,18 +39,24 @@ interface Category {
     name: string;
 }
 
+interface Tag {
+    id: number;
+    name: string;
+}
+
 interface PostEditProps {
     post?: Post | null;
     categories?: Category[];
+    existingTags?: string[];
 }
 
-export default function PostEdit({ post = null, categories = [] }: PostEditProps) {
+export default function PostEdit({ post = null, categories = [], existingTags = [] }: PostEditProps) {
     const { data, setData, post: submit, put, processing, errors } = useForm<PostFormData>({
         title: post?.title ?? '',
         content: post?.content ?? '',
         category_id: post?.category_id ?? '',
         excerpt: post?.excerpt ?? '',
-        tags: post?.tags ?? '',
+        tags: existingTags.length > 0 ? existingTags : (post?.tags ? post.tags.map((tag: Tag) => tag.name) : []),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         is_draft: post ? Boolean((post as any).is_draft) : true,
     });
@@ -505,10 +512,10 @@ export default function PostEdit({ post = null, categories = [] }: PostEditProps
 
                             <div className="space-y-2">
                                 <Label htmlFor="tags">Tags</Label>
-                                <Input
-                                    id="tags"
+                                <TagInput
                                     value={data.tags}
-                                    onChange={e => setData('tags', e.target.value)}
+                                    onChange={(tags) => setData('tags', tags)}
+                                    placeholder="Add tags for your post"
                                 />
                             </div>
 

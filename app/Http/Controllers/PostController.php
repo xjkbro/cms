@@ -16,15 +16,16 @@ class PostController extends Controller
     public function index(Request $request)
     {
         $currentProject = $request->attributes->get('current_project');
-        
+
         return Inertia::render('posts/posts', [
-            'posts' => Post::with('category','user')
+            'posts' => Post::with('category','user', 'tags')
                 ->where('user_id', $request->user()->id)
                 ->where('project_id', $currentProject->id)
                 ->get(),
             'categories' => Category::where('user_id', $request->user()->id)
                 ->where('project_id', $currentProject->id)
                 ->get(),
+            'tags' => \App\Models\Tag::all(),
         ]);
     }
 
@@ -39,6 +40,7 @@ class PostController extends Controller
             ->get();
         return Inertia::render('posts/edit', [
             'categories' => $categories,
+            'existingTags' => [],
         ]);
     }
 
@@ -48,7 +50,7 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $currentProject = $request->attributes->get('current_project');
-        
+
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'nullable|string',
@@ -65,7 +67,8 @@ class PostController extends Controller
                 }
             ],
             'excerpt' => 'nullable|string|max:255',
-            'tags' => 'nullable|string',
+            'tags' => 'nullable|array',
+            'tags.*' => 'string|max:255',
             'is_draft' => 'nullable|boolean',
         ]);
 
@@ -73,6 +76,16 @@ class PostController extends Controller
         $data['project_id'] = $currentProject->id;
 
         $post = \App\Models\Post::create($data);
+
+        // Handle tags
+        if ($request->has('tags') && is_array($request->tags)) {
+            $tagIds = [];
+            foreach ($request->tags as $tagName) {
+                $tag = \App\Models\Tag::firstOrCreate(['name' => trim($tagName)]);
+                $tagIds[] = $tag->id;
+            }
+            $post->tags()->sync($tagIds);
+        }
 
         return redirect()->route('posts');
     }
@@ -91,18 +104,23 @@ class PostController extends Controller
     public function edit(Request $request, Post $post)
     {
         $currentProject = $request->attributes->get('current_project');
-        
+
         // Ensure the post belongs to the current user and project
         if ($post->user_id !== $request->user()->id || $post->project_id !== $currentProject->id) {
             abort(404);
         }
-        
+
         $categories = \App\Models\Category::where('user_id', $request->user()->id)
             ->where('project_id', $currentProject->id)
             ->get();
+
+        $post->load('tags');
+        $existingTags = is_iterable($post->tags) ? collect($post->tags)->pluck('name')->toArray() : [];
+
         return Inertia::render('posts/edit', [
             'post' => $post,
             'categories' => $categories,
+            'existingTags' => $existingTags,
         ]);
     }
 
@@ -112,12 +130,12 @@ class PostController extends Controller
     public function update(Request $request, Post $post)
     {
         $currentProject = $request->attributes->get('current_project');
-        
+
         // Ensure the post belongs to the current user and project
         if ($post->user_id !== $request->user()->id || $post->project_id !== $currentProject->id) {
             abort(404);
         }
-        
+
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'nullable|string',
@@ -134,11 +152,24 @@ class PostController extends Controller
                 }
             ],
             'excerpt' => 'nullable|string|max:255',
-            'tags' => 'nullable|string',
+            'tags' => 'nullable|array',
+            'tags.*' => 'string|max:255',
             'is_draft' => 'nullable|boolean',
         ]);
 
         $post->update($data);
+
+        // Handle tags
+        if ($request->has('tags') && is_array($request->tags)) {
+            $tagIds = [];
+            foreach ($request->tags as $tagName) {
+                $tag = \App\Models\Tag::firstOrCreate(['name' => trim($tagName)]);
+                $tagIds[] = $tag->id;
+            }
+            $post->tags()->sync($tagIds);
+        } else {
+            $post->tags()->detach();
+        }
 
         return redirect()->route('posts');
     }
@@ -149,12 +180,12 @@ class PostController extends Controller
     public function destroy(Request $request, Post $post)
     {
         $currentProject = $request->attributes->get('current_project');
-        
+
         // Ensure the post belongs to the current user and project
         if ($post->user_id !== $request->user()->id || $post->project_id !== $currentProject->id) {
             abort(404);
         }
-        
+
         $post->delete();
         return redirect()->route('posts');
     }
