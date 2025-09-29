@@ -26,7 +26,7 @@ class MediaController extends Controller
             return response()->json(['media' => $media]);
         }
 
-        return Inertia::render('Media/Index', [
+        return Inertia::render('media/index', [
             'media' => $media,
         ]);
     }

@@ -18,14 +18,14 @@ class ProjectController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return Inertia::render('Projects/Index', [
+        return Inertia::render('projects/index', [
             'projects' => $projects,
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('Projects/Create');
+        return Inertia::render('projects/create');
     }
 
     public function store(Request $request)
@@ -61,7 +61,7 @@ class ProjectController extends Controller
             abort(403);
         }
 
-        return Inertia::render('Projects/Edit', [
+        return Inertia::render('projects/edit', [
             'project' => $project,
         ]);
     }
