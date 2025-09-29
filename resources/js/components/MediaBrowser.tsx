@@ -192,7 +192,7 @@ export function MediaBrowser({ onSelect, trigger }: MediaBrowserProps) {
                                 No media uploaded yet
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 gap-4">
                                 {media.map((item) => (
                                     <div
                                         key={item.id}

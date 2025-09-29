@@ -13,6 +13,7 @@ import Link from '@tiptap/extension-link';
 import MarkdownIt from 'markdown-it';
 import TurndownService from 'turndown';
 import { MediaBrowser } from '@/components/MediaBrowser';
+import { Switch } from '@/components/ui/switch';
 
 interface PostFormData {
     title: string;
@@ -50,7 +51,7 @@ export default function PostEdit({ post = null, categories = [] }: PostEditProps
         excerpt: post?.excerpt ?? '',
         tags: post?.tags ?? '',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        is_draft: post ? Boolean((post as any).is_draft) : false,
+        is_draft: post ? Boolean((post as any).is_draft) : true,
     });
 
     // Add custom styles for the TipTap editor with shadcn theming
@@ -107,8 +108,30 @@ export default function PostEdit({ post = null, categories = [] }: PostEditProps
             padding-left: 1.5rem;
             margin: 0.75rem 0;
         }
+        .ProseMirror ul {
+            list-style-type: disc;
+            list-style-position: outside;
+        }
+        .ProseMirror ol {
+            list-style-type: decimal;
+            list-style-position: outside;
+        }
         .ProseMirror li {
             margin: 0.25rem 0;
+            display: list-item;
+        }
+        /* Nested list styles */
+        .ProseMirror ul ul {
+            list-style-type: circle;
+        }
+        .ProseMirror ul ul ul {
+            list-style-type: square;
+        }
+        .ProseMirror ol ol {
+            list-style-type: lower-alpha;
+        }
+        .ProseMirror ol ol ol {
+            list-style-type: lower-roman;
         }
         .ProseMirror img {
             max-width: 100%;
@@ -262,14 +285,16 @@ export default function PostEdit({ post = null, categories = [] }: PostEditProps
                                 <div className="flex items-center justify-between">
                                     <Label htmlFor="content">Content</Label>
                                     <div className="flex items-center gap-4">
-                                        <label className="flex items-center gap-2">
-                                            <input
-                                                type="checkbox"
-                                                checked={Boolean(data.is_draft)}
-                                                onChange={e => setData('is_draft', e.target.checked)}
+                                        <div className="flex items-center gap-2">
+                                            <Switch
+                                                checked={!data.is_draft}
+                                                onCheckedChange={(checked) => setData('is_draft', !checked)}
+                                                id="published-switch"
                                             />
-                                            <span className="text-sm">Draft</span>
-                                        </label>
+                                            <Label htmlFor="published-switch" className="text-sm cursor-pointer">
+                                                Published
+                                            </Label>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="space-y-0">
@@ -280,7 +305,7 @@ export default function PostEdit({ post = null, categories = [] }: PostEditProps
                                             type="button"
                                             size="sm"
                                             variant="ghost"
-                                            className="h-8 w-8 p-0"
+                                            className="h-8 w-8 p-0 hover:cursor-pointer"
                                             disabled={!editor?.can().undo()}
                                             onClick={() => editor?.chain().focus().undo().run()}
                                             title="Undo (Ctrl+Z)"
@@ -291,7 +316,7 @@ export default function PostEdit({ post = null, categories = [] }: PostEditProps
                                             type="button"
                                             size="sm"
                                             variant="ghost"
-                                            className="h-8 w-8 p-0"
+                                            className="h-8 w-8 p-0 hover:cursor-pointer"
                                             disabled={!editor?.can().redo()}
                                             onClick={() => editor?.chain().focus().redo().run()}
                                             title="Redo (Ctrl+Y)"
@@ -329,19 +354,23 @@ export default function PostEdit({ post = null, categories = [] }: PostEditProps
                                             type="button"
                                             size="sm"
                                             variant={editor?.isActive('bulletList') ? 'default' : 'ghost'}
-                                            className="h-8 w-8 p-0"
+                                            className="h-8 w-8 p-0 hover:cursor-pointer"
                                             onClick={() => editor?.chain().focus().toggleBulletList().run()}
                                         >
-                                            ☰
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                                            </svg>
                                         </Button>
                                         <Button
                                             type="button"
                                             size="sm"
                                             variant={editor?.isActive('orderedList') ? 'default' : 'ghost'}
-                                            className="h-8 w-8 p-0"
+                                            className="h-8 w-8 p-0 hover:cursor-pointer"
                                             onClick={() => editor?.chain().focus().toggleOrderedList().run()}
                                         >
-                                            ☷
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.242 5.992h12m-12 6.003H20.24m-12 5.999h12M4.117 7.495v-3.75H2.99m1.125 3.75H2.99m1.125 0H5.24m-1.92 2.577a1.125 1.125 0 1 1 1.591 1.59l-1.83 1.83h2.16M2.99 15.745h1.125a1.125 1.125 0 0 1 0 2.25H3.74m0-.002h.375a1.125 1.125 0 0 1 0 2.25H2.99" />
+                                            </svg>
                                         </Button>
 
                                         <div className="w-px h-6 bg-border mx-2" />
@@ -351,10 +380,11 @@ export default function PostEdit({ post = null, categories = [] }: PostEditProps
                                             type="button"
                                             size="sm"
                                             variant={editor?.isActive('blockquote') ? 'default' : 'ghost'}
-                                            className="h-8 w-8 p-0"
+                                            className="h-8 w-8 p-0 hover:cursor-pointer"
                                             onClick={() => editor?.chain().focus().toggleBlockquote().run()}
                                         >
-                                            "
+                                            {/* <TextQuote height={36} width={36} className=''/> */}
+                                            <span className='text-5xl mt-6 font-bold'>{'"'}</span>
                                         </Button>
 
                                         <div className="w-px h-6 bg-border mx-2" />
@@ -364,37 +394,47 @@ export default function PostEdit({ post = null, categories = [] }: PostEditProps
                                             type="button"
                                             size="sm"
                                             variant={editor?.isActive('bold') ? 'default' : 'ghost'}
-                                            className="h-8 w-8 p-0 font-bold"
+                                            className="h-8 w-8 p-0 hover:cursor-pointer font-bold"
                                             onClick={() => editor?.chain().focus().toggleBold().run()}
                                         >
-                                            B
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                                <path strokeLinejoin="round" d="M6.75 3.744h-.753v8.25h7.125a4.125 4.125 0 0 0 0-8.25H6.75Zm0 0v.38m0 16.122h6.747a4.5 4.5 0 0 0 0-9.001h-7.5v9h.753Zm0 0v-.37m0-15.751h6a3.75 3.75 0 1 1 0 7.5h-6m0-7.5v7.5m0 0v8.25m0-8.25h6.375a4.125 4.125 0 0 1 0 8.25H6.75m.747-15.38h4.875a3.375 3.375 0 0 1 0 6.75H7.497v-6.75Zm0 7.5h5.25a3.75 3.75 0 0 1 0 7.5h-5.25v-7.5Z" />
+                                            </svg>
                                         </Button>
                                         <Button
                                             type="button"
                                             size="sm"
                                             variant={editor?.isActive('italic') ? 'default' : 'ghost'}
-                                            className="h-8 w-8 p-0 italic"
+                                            className="h-8 w-8 p-0 hover:cursor-pointer italic"
                                             onClick={() => editor?.chain().focus().toggleItalic().run()}
                                         >
-                                            I
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5.248 20.246H9.05m0 0h3.696m-3.696 0 5.893-16.502m0 0h-3.697m3.697 0h3.803" />
+                                            </svg>
                                         </Button>
                                         <Button
                                             type="button"
                                             size="sm"
                                             variant={editor?.isActive('strike') ? 'default' : 'ghost'}
-                                            className="h-8 w-8 p-0"
+                                            className="h-8 w-8 p-0 hover:cursor-pointer"
                                             onClick={() => editor?.chain().focus().toggleStrike().run()}
                                         >
-                                            <span className="line-through">S</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 12a8.912 8.912 0 0 1-.318-.079c-1.585-.424-2.904-1.247-3.76-2.236-.873-1.009-1.265-2.19-.968-3.301.59-2.2 3.663-3.29 6.863-2.432A8.186 8.186 0 0 1 16.5 5.21M6.42 17.81c.857.99 2.176 1.812 3.761 2.237 3.2.858 6.274-.23 6.863-2.431.233-.868.044-1.779-.465-2.617M3.75 12h16.5" />
+                                            </svg>
+
                                         </Button>
                                         <Button
                                             type="button"
                                             size="sm"
                                             variant={editor?.isActive('code') ? 'default' : 'ghost'}
-                                            className="h-8 w-8 p-0 font-mono text-xs"
+                                            className="h-8 w-8 p-0 hover:cursor-pointer font-mono text-xs"
                                             onClick={() => editor?.chain().focus().toggleCode().run()}
                                         >
-                                            {'<>'}
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
+                                            </svg>
+
                                         </Button>
 
                                         <div className="w-px h-6 bg-border mx-2" />
@@ -404,7 +444,7 @@ export default function PostEdit({ post = null, categories = [] }: PostEditProps
                                             type="button"
                                             size="sm"
                                             variant={editor?.isActive('link') ? 'default' : 'ghost'}
-                                            className="h-8 w-8 p-0"
+                                            className="h-8 w-8 p-0 hover:cursor-pointer"
                                             onClick={() => {
                                                 if (editor?.isActive('link')) {
                                                     editor.chain().focus().unsetLink().run();
@@ -423,8 +463,12 @@ export default function PostEdit({ post = null, categories = [] }: PostEditProps
                                             }}
                                             title={editor?.isActive('link') ? 'Remove link' : 'Add link'}
                                         >
-                                            🔗
-                                        </Button>                                        <div className="w-px h-6 bg-border mx-2" />
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                                            </svg>
+                                        </Button>
+
+                                        <div className="w-px h-6 bg-border mx-2" />
 
                                         {/* Image */}
                                         <MediaBrowser
@@ -436,10 +480,13 @@ export default function PostEdit({ post = null, categories = [] }: PostEditProps
                                                     type="button"
                                                     size="sm"
                                                     variant="ghost"
-                                                    className="h-8 w-8 p-0"
+                                                    className="h-8 w-8 p-0 hover:cursor-pointer"
                                                     title="Insert image"
                                                 >
-                                                    🖼️
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                                                    </svg>
+
                                                 </Button>
                                             }
                                         />
