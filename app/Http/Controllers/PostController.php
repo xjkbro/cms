@@ -15,9 +15,16 @@ class PostController extends Controller
      */
     public function index(Request $request)
     {
+        $currentProject = $request->attributes->get('current_project');
+        
         return Inertia::render('posts/posts', [
-            'posts' => Post::with('category','user')->get(),
-            'categories' => Category::where('user_id', $request->user()->id)->get(),
+            'posts' => Post::with('category','user')
+                ->where('user_id', $request->user()->id)
+                ->where('project_id', $currentProject->id)
+                ->get(),
+            'categories' => Category::where('user_id', $request->user()->id)
+                ->where('project_id', $currentProject->id)
+                ->get(),
         ]);
     }
 
@@ -26,9 +33,11 @@ class PostController extends Controller
      */
     public function create(Request $request)
     {
-        $categories = \App\Models\Category::where('user_id', $request->user()->id)->get();
+        $currentProject = $request->attributes->get('current_project');
+        $categories = \App\Models\Category::where('user_id', $request->user()->id)
+            ->where('project_id', $currentProject->id)
+            ->get();
         return Inertia::render('posts/edit', [
-            'post' => null,
             'categories' => $categories,
         ]);
     }
@@ -38,18 +47,32 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
+        $currentProject = $request->attributes->get('current_project');
+        
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'nullable|string',
-            'category_id' => 'nullable|exists:categories,id',
+            'category_id' => [
+                'nullable',
+                'exists:categories,id',
+                function ($attribute, $value, $fail) use ($currentProject, $request) {
+                    if ($value && !Category::where('id', $value)
+                                          ->where('user_id', $request->user()->id)
+                                          ->where('project_id', $currentProject->id)
+                                          ->exists()) {
+                        $fail('The selected category must belong to the current project.');
+                    }
+                }
+            ],
             'excerpt' => 'nullable|string|max:255',
             'tags' => 'nullable|string',
             'is_draft' => 'nullable|boolean',
         ]);
 
         $data['user_id'] = $request->user()->id;
+        $data['project_id'] = $currentProject->id;
 
-    $post = \App\Models\Post::create($data);
+        $post = \App\Models\Post::create($data);
 
         return redirect()->route('posts');
     }
@@ -67,7 +90,16 @@ class PostController extends Controller
      */
     public function edit(Request $request, Post $post)
     {
-        $categories = \App\Models\Category::where('user_id', $request->user()->id)->get();
+        $currentProject = $request->attributes->get('current_project');
+        
+        // Ensure the post belongs to the current user and project
+        if ($post->user_id !== $request->user()->id || $post->project_id !== $currentProject->id) {
+            abort(404);
+        }
+        
+        $categories = \App\Models\Category::where('user_id', $request->user()->id)
+            ->where('project_id', $currentProject->id)
+            ->get();
         return Inertia::render('posts/edit', [
             'post' => $post,
             'categories' => $categories,
@@ -79,10 +111,28 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
+        $currentProject = $request->attributes->get('current_project');
+        
+        // Ensure the post belongs to the current user and project
+        if ($post->user_id !== $request->user()->id || $post->project_id !== $currentProject->id) {
+            abort(404);
+        }
+        
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'nullable|string',
-            'category_id' => 'nullable|exists:categories,id',
+            'category_id' => [
+                'nullable',
+                'exists:categories,id',
+                function ($attribute, $value, $fail) use ($currentProject, $request) {
+                    if ($value && !Category::where('id', $value)
+                                          ->where('user_id', $request->user()->id)
+                                          ->where('project_id', $currentProject->id)
+                                          ->exists()) {
+                        $fail('The selected category must belong to the current project.');
+                    }
+                }
+            ],
             'excerpt' => 'nullable|string|max:255',
             'tags' => 'nullable|string',
             'is_draft' => 'nullable|boolean',
@@ -96,8 +146,15 @@ class PostController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Post $post)
+    public function destroy(Request $request, Post $post)
     {
+        $currentProject = $request->attributes->get('current_project');
+        
+        // Ensure the post belongs to the current user and project
+        if ($post->user_id !== $request->user()->id || $post->project_id !== $currentProject->id) {
+            abort(404);
+        }
+        
         $post->delete();
         return redirect()->route('posts');
     }

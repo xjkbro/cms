@@ -1,6 +1,7 @@
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
+import { ProjectSection } from '@/components/ProjectSection';
 import {
     Sidebar,
     SidebarContent,
@@ -12,9 +13,20 @@ import {
 } from '@/components/ui/sidebar';
 import { categories, dashboard, posts } from '@/routes';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Image, FileText, BookMarked } from 'lucide-react';
 import AppLogo from './app-logo';
+
+interface Project {
+    id: number;
+    name: string;
+    is_default: boolean;
+}
+
+interface PageProps extends Record<string, unknown> {
+    currentProject?: Project;
+    userProjects?: Project[];
+}
 
 const mainNavItems: NavItem[] = [
     {
@@ -42,17 +54,20 @@ const mainNavItems: NavItem[] = [
 const footerNavItems: NavItem[] = [
     {
         title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
+        href: 'https://github.com/xjkbro/cms',
         icon: Folder,
     },
     {
         title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
+        href: '/api/documentation',
         icon: BookOpen,
     },
 ];
 
 export function AppSidebar() {
+    const { props } = usePage<PageProps>();
+    const { currentProject, userProjects } = props;
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -68,6 +83,12 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
+                {currentProject && userProjects && (
+                    <ProjectSection
+                        currentProject={currentProject}
+                        projects={userProjects}
+                    />
+                )}
                 <NavMain items={mainNavItems} />
             </SidebarContent>
 

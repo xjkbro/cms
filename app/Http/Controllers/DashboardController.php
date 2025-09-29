@@ -14,21 +14,24 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        $currentProject = $request->attributes->get('current_project');
         $timeframe = $request->get('timeframe', 'all'); // 'all', 'year', 'month'
         
-        // Basic statistics
+        // Basic statistics for the current project
         $publishedPosts = Post::where('user_id', $user->id)
+            ->where('project_id', $currentProject->id)
             ->where('is_draft', false)
             ->count();
             
         $draftPosts = Post::where('user_id', $user->id)
+            ->where('project_id', $currentProject->id)
             ->where('is_draft', true)
             ->count();
             
-        $totalCategories = Category::count();
+        $totalCategories = Category::where('project_id', $currentProject->id)->count();
         
         // Posts over time data
-        $postsOverTime = $this->getPostsOverTime($user->id, $timeframe);
+        $postsOverTime = $this->getPostsOverTime($user->id, $currentProject->id, $timeframe);
         
         return Inertia::render('dashboard', [
             'stats' => [
@@ -39,12 +42,14 @@ class DashboardController extends Controller
             ],
             'posts_over_time' => $postsOverTime,
             'current_timeframe' => $timeframe,
+            'current_project' => $currentProject,
         ]);
     }
     
-    private function getPostsOverTime($userId, $timeframe)
+    private function getPostsOverTime($userId, $projectId, $timeframe)
     {
         $query = Post::where('user_id', $userId)
+            ->where('project_id', $projectId)
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'));
             
         switch ($timeframe) {

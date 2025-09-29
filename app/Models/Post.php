@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Post extends Model
 {
     //
     protected $fillable = [
         'user_id',
+        'project_id',
         'category_id',
         'title',
         'slug',
@@ -21,6 +23,8 @@ class Post extends Model
     protected $casts = [
         'is_draft' => 'boolean',
     ];
+
+
 
     protected static function booted()
     {
@@ -35,6 +39,12 @@ class Post extends Model
     {
         return $this->belongsTo(User::class);
     }
+    
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
+    }
+    
     public function category()
     {
         return $this->belongsTo(Category::class);
