@@ -14,11 +14,118 @@
     },
     "servers": [
         {
-            "url": "http://my-default-host.com",
+            "url": "/api",
             "description": "API Server"
         }
     ],
     "paths": {
+        "/auth/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login and get API token",
+                "description": "Authenticate user and receive Bearer token for API access",
+                "operationId": "2c3d5443359283b6959f62beb36926a6",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "token": {
+                                            "type": "string",
+                                            "example": "1|abc123def456..."
+                                        },
+                                        "user": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "John Doe"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "user@example.com"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout and revoke token",
+                "description": "Revoke the current API token",
+                "operationId": "eb8b6cd81eaf56e1848997cc6579c0af",
+                "responses": {
+                    "200": {
+                        "description": "Logout successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logged out successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/categories": {
             "get": {
                 "tags": [
@@ -526,121 +633,34 @@
                 ]
             }
         },
-        "/auth/login": {
-            "post": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Login and get API token",
-                "description": "Authenticate user and receive Bearer token for API access",
-                "operationId": "e47c731a4ec116bbba6f1a252472d64f",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "email",
-                                    "password"
-                                ],
-                                "properties": {
-                                    "email": {
-                                        "type": "string",
-                                        "format": "email",
-                                        "example": "user@example.com"
-                                    },
-                                    "password": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "password"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Login successful",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "token": {
-                                            "type": "string",
-                                            "example": "1|abc123def456..."
-                                        },
-                                        "user": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "name": {
-                                                    "type": "string",
-                                                    "example": "John Doe"
-                                                },
-                                                "email": {
-                                                    "type": "string",
-                                                    "example": "user@example.com"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Invalid credentials"
-                    }
-                }
-            }
-        },
-        "/auth/logout": {
-            "post": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Logout and revoke token",
-                "description": "Revoke the current API token",
-                "operationId": "05845d43a2fa410d3ed71d963fc64899",
-                "responses": {
-                    "200": {
-                        "description": "Logout successful",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Logged out successfully"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
         "/posts": {
             "get": {
                 "tags": [
                     "Posts"
                 ],
                 "summary": "Get all posts",
-                "description": "Retrieve a list of all posts",
+                "description": "Retrieve a list of all posts the user has access to across all projects",
                 "operationId": "e3ad2dbbf6e8228cfaa082c1ac1dae35",
+                "parameters": [
+                    {
+                        "name": "category_id",
+                        "in": "query",
+                        "description": "Filter posts by category ID",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "project_id",
+                        "in": "query",
+                        "description": "Filter posts by project ID",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success",
@@ -648,9 +668,51 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "title": {
+                                                        "type": "string"
+                                                    },
+                                                    "content": {
+                                                        "type": "string"
+                                                    },
+                                                    "excerpt": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "feature_image_url": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "is_draft": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "project_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "category_id": {
+                                                        "type": "integer",
+                                                        "nullable": true
+                                                    },
+                                                    "user": {
+                                                        "type": "object"
+                                                    },
+                                                    "category": {
+                                                        "type": "object",
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
                                         "message": {
                                             "type": "string",
-                                            "example": "Posts retrieved successfully"
+                                            "example": "Successfully queried posts"
                                         }
                                     },
                                     "type": "object"
@@ -689,6 +751,11 @@
                                     "category_id": {
                                         "type": "integer",
                                         "example": 1
+                                    },
+                                    "feature_image_url": {
+                                        "type": "string",
+                                        "example": "https://example.com/image.jpg",
+                                        "nullable": true
                                     }
                                 },
                                 "type": "object"
@@ -750,9 +817,51 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                },
+                                                "content": {
+                                                    "type": "string"
+                                                },
+                                                "excerpt": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "feature_image_url": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "is_draft": {
+                                                    "type": "boolean"
+                                                },
+                                                "project_id": {
+                                                    "type": "integer"
+                                                },
+                                                "category_id": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "user": {
+                                                    "type": "object"
+                                                },
+                                                "category": {
+                                                    "type": "object",
+                                                    "nullable": true
+                                                },
+                                                "project": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
                                         "message": {
                                             "type": "string",
-                                            "example": "Showing post with ID: 1"
+                                            "example": "Post retrieved successfully"
                                         }
                                     },
                                     "type": "object"
@@ -805,6 +914,11 @@
                                     "category_id": {
                                         "type": "integer",
                                         "example": 1
+                                    },
+                                    "feature_image_url": {
+                                        "type": "string",
+                                        "example": "https://example.com/image.jpg",
+                                        "nullable": true
                                     }
                                 },
                                 "type": "object"

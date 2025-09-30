@@ -36,6 +36,7 @@ chown -R www-data:www-data /var/www/storage
 chmod -R 775 /var/www/storage
 chmod 755 /var/www
 
+php artisan l5-sw:generate || true
 
 # Run php-fpm as PID 1
 exec php-fpm

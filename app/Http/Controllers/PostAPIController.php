@@ -14,123 +14,29 @@ use OpenApi\Attributes as OA;
 
 class PostAPIController extends Controller
 {
-    #[OA\Post(
-        path: "/auth/login",
-        summary: "Login and get API token",
-        description: "Authenticate user and receive Bearer token for API access",
-        tags: ["Authentication"],
-        requestBody: new OA\RequestBody(
-            required: true,
-            content: new OA\JsonContent(
-                type: "object",
-                required: ["email", "password"],
-                properties: [
-                    "email" => new OA\Property(property: "email", type: "string", format: "email", example: "user@example.com"),
-                    "password" => new OA\Property(property: "password", type: "string", format: "password", example: "password")
-                ]
-            )
-        ),
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: "Login successful",
-                content: new OA\JsonContent(
-                    type: "object",
-                    properties: [
-                        "token" => new OA\Property(property: "token", type: "string", example: "1|abc123def456..."),
-                        "user" => new OA\Property(
-                            property: "user",
-                            type: "object",
-                            properties: [
-                                "id" => new OA\Property(property: "id", type: "integer", example: 1),
-                                "name" => new OA\Property(property: "name", type: "string", example: "John Doe"),
-                                "email" => new OA\Property(property: "email", type: "string", example: "user@example.com")
-                            ]
-                        )
-                    ]
-                )
-            ),
-            new OA\Response(response: 422, description: "Invalid credentials")
-        ]
-    )]
-    public function login(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        $user = User::where('email', $request->email)->first();
-
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
-        }
-
-        $token = $user->createToken('api-token')->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-            'user' => $user,
-        ]);
-    }
-
-    #[OA\Post(
-        path: "/auth/logout",
-        summary: "Logout and revoke token",
-        description: "Revoke the current API token",
-        tags: ["Authentication"],
-        security: [["sanctum" => []]],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: "Logout successful",
-                content: new OA\JsonContent(
-                    type: "object",
-                    properties: [
-                        "message" => new OA\Property(property: "message", type: "string", example: "Logged out successfully")
-                    ]
-                )
-            )
-        ]
-    )]
-    public function logout(Request $request)
-    {
-        $user = $request->user();
-
-        if (! $user) {
-            return response()->json(['message' => 'No authenticated user'], 401);
-        }
-
-        // Try common token retrieval methods (Sanctum: currentAccessToken, Passport: token)
-        $token = null;
-        if (method_exists($user, 'currentAccessToken')) {
-            $token = $user->currentAccessToken();
-        } elseif (method_exists($user, 'token')) {
-            $token = $user->token();
-        }
-
-        if ($token) {
-            // Prefer delete() (used by Sanctum/personal access tokens), fall back to revoke() (Passport)
-            if (method_exists($token, 'delete')) {
-                $token->delete();
-            } elseif (method_exists($token, 'revoke')) {
-                $token->revoke();
-            }
-        }
-
-        return response()->json([
-            'message' => 'Logged out successfully'
-        ]);
-    }
 
     #[OA\Get(
         path: "/posts",
         summary: "Get all posts",
-        description: "Retrieve a list of all posts",
+        description: "Retrieve a list of all posts the user has access to across all projects",
         tags: ["Posts"],
         security: [["sanctum" => []]],
+        parameters: [
+            new OA\Parameter(
+                name: "category_id",
+                in: "query",
+                required: false,
+                description: "Filter posts by category ID",
+                schema: new OA\Schema(type: "integer")
+            ),
+            new OA\Parameter(
+                name: "project_id",
+                in: "query",
+                required: false,
+                description: "Filter posts by project ID",
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
         responses: [
             new OA\Response(
                 response: 200,
@@ -138,7 +44,26 @@ class PostAPIController extends Controller
                 content: new OA\JsonContent(
                     type: "object",
                     properties: [
-                        "message" => new OA\Property(property: "message", type: "string", example: "Posts retrieved successfully"),
+                        "data" => new OA\Property(
+                            property: "data",
+                            type: "array",
+                            items: new OA\Items(
+                                type: "object",
+                                properties: [
+                                    "id" => new OA\Property(property: "id", type: "integer"),
+                                    "title" => new OA\Property(property: "title", type: "string"),
+                                    "content" => new OA\Property(property: "content", type: "string"),
+                                    "excerpt" => new OA\Property(property: "excerpt", type: "string", nullable: true),
+                                    "feature_image_url" => new OA\Property(property: "feature_image_url", type: "string", nullable: true),
+                                    "is_draft" => new OA\Property(property: "is_draft", type: "boolean"),
+                                    "project_id" => new OA\Property(property: "project_id", type: "integer"),
+                                    "category_id" => new OA\Property(property: "category_id", type: "integer", nullable: true),
+                                    "user" => new OA\Property(property: "user", type: "object"),
+                                    "category" => new OA\Property(property: "category", type: "object", nullable: true)
+                                ]
+                            )
+                        ),
+                        "message" => new OA\Property(property: "message", type: "string", example: "Successfully queried posts"),
                     ]
                 )
             )
@@ -147,8 +72,33 @@ class PostAPIController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $posts = Post::with('category', 'user')->where('user_id', $user->id)->get();
-        return response()->json(['data' => $posts, 'message' => 'Successfully queried posts']);
+
+        // Get all projects the user has access to (as owner or collaborator)
+        $accessibleProjects = \App\Models\Project::where('user_id', $user->id)
+            ->orWhereHas('collaborators', function ($query) use ($user) {
+                $query->where('users.id', $user->id);
+            })
+            ->pluck('id');
+
+        // Build the query
+        $query = Post::with('category', 'user', 'project')
+            ->whereIn('project_id', $accessibleProjects);
+
+        // Apply optional filters
+        if ($request->has('category_id') && $request->category_id) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->has('project_id') && $request->project_id) {
+            $query->where('project_id', $request->project_id);
+        }
+
+        $posts = $query->get();
+
+        return response()->json([
+            'data' => $posts,
+            'message' => 'Successfully queried posts'
+        ]);
     }
 
     #[OA\Get(
@@ -173,7 +123,24 @@ class PostAPIController extends Controller
                 content: new OA\JsonContent(
                     type: "object",
                     properties: [
-                        "message" => new OA\Property(property: "message", type: "string", example: "Showing post with ID: 1")
+                        "data" => new OA\Property(
+                            property: "data",
+                            type: "object",
+                            properties: [
+                                "id" => new OA\Property(property: "id", type: "integer"),
+                                "title" => new OA\Property(property: "title", type: "string"),
+                                "content" => new OA\Property(property: "content", type: "string"),
+                                "excerpt" => new OA\Property(property: "excerpt", type: "string", nullable: true),
+                                "feature_image_url" => new OA\Property(property: "feature_image_url", type: "string", nullable: true),
+                                "is_draft" => new OA\Property(property: "is_draft", type: "boolean"),
+                                "project_id" => new OA\Property(property: "project_id", type: "integer"),
+                                "category_id" => new OA\Property(property: "category_id", type: "integer", nullable: true),
+                                "user" => new OA\Property(property: "user", type: "object"),
+                                "category" => new OA\Property(property: "category", type: "object", nullable: true),
+                                "project" => new OA\Property(property: "project", type: "object")
+                            ]
+                        ),
+                        "message" => new OA\Property(property: "message", type: "string", example: "Post retrieved successfully")
                     ]
                 )
             ),
@@ -182,7 +149,28 @@ class PostAPIController extends Controller
     )]
     public function show($id)
     {
-        return response()->json(['message' => "Showing post with ID: $id"]);
+        $user = request()->user();
+
+        // Get all projects the user has access to
+        $accessibleProjects = \App\Models\Project::where('user_id', $user->id)
+            ->orWhereHas('collaborators', function ($query) use ($user) {
+                $query->where('users.id', $user->id);
+            })
+            ->pluck('id');
+
+        $post = Post::with('category', 'user', 'project')
+            ->where('id', $id)
+            ->whereIn('project_id', $accessibleProjects)
+            ->first();
+
+        if (!$post) {
+            return response()->json(['message' => 'Post not found'], 404);
+        }
+
+        return response()->json([
+            'data' => $post,
+            'message' => 'Post retrieved successfully'
+        ]);
     }
 
     #[OA\Post(
@@ -198,7 +186,8 @@ class PostAPIController extends Controller
                 properties: [
                     "title" => new OA\Property(property: "title", type: "string", example: "My New Post"),
                     "content" => new OA\Property(property: "content", type: "string", example: "This is the content of my post"),
-                    "category_id" => new OA\Property(property: "category_id", type: "integer", example: 1)
+                    "category_id" => new OA\Property(property: "category_id", type: "integer", example: 1),
+                    "feature_image_url" => new OA\Property(property: "feature_image_url", type: "string", nullable: true, example: "https://example.com/image.jpg")
                 ]
             )
         ),
@@ -244,7 +233,8 @@ class PostAPIController extends Controller
                 properties: [
                     "title" => new OA\Property(property: "title", type: "string", example: "Updated Post Title"),
                     "content" => new OA\Property(property: "content", type: "string", example: "Updated post content"),
-                    "category_id" => new OA\Property(property: "category_id", type: "integer", example: 1)
+                    "category_id" => new OA\Property(property: "category_id", type: "integer", example: 1),
+                    "feature_image_url" => new OA\Property(property: "feature_image_url", type: "string", nullable: true, example: "https://example.com/image.jpg")
                 ]
             )
         ),
