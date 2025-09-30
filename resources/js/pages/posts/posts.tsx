@@ -74,9 +74,9 @@ export default function Posts({posts, tags}: PostsProps) {
             cell: info => {
                 const imageUrl = info.getValue();
                 return imageUrl ? (
-                    <img 
-                        src={imageUrl} 
-                        alt="Post feature image" 
+                    <img
+                        src={imageUrl}
+                        alt="Post feature image"
                         className="w-12 h-8 object-cover rounded border"
                         onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';
