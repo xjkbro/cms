@@ -99,6 +99,7 @@ class PostController extends Controller
                 }
             ],
             'excerpt' => 'nullable|string|max:255',
+            'feature_image_url' => 'nullable|string|url|max:500',
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:255',
             'is_draft' => 'nullable|boolean',
@@ -251,6 +252,7 @@ class PostController extends Controller
                 }
             ],
             'excerpt' => 'nullable|string|max:255',
+            'feature_image_url' => 'nullable|string|url|max:500',
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:255',
             'is_draft' => 'nullable|boolean',

@@ -23,11 +23,9 @@ if [ ! -d "node_modules" ]; then
   npm install --legacy-peer-deps --no-audit --no-fund || true
 fi
 
-# Build frontend if public/build missing or empty
-if [ ! -d "public/build" ] || [ -z "$(ls -A public/build 2>/dev/null || true)" ]; then
-  echo "Building frontend assets..."
-  npm run build || true
-fi
+# Always build frontend assets
+echo "Building frontend assets..."
+npm run build || true
 
 php artisan migrate --force || true
 

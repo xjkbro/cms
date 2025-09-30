@@ -21,6 +21,7 @@ interface PostFormData {
     content: string;
     category_id: string | number;
     excerpt: string;
+    feature_image_url: string;
     tags: string[];
     is_draft?: boolean;
 }
@@ -31,6 +32,7 @@ interface Post {
     content: string;
     category_id: number;
     excerpt: string;
+    feature_image_url: string;
     tags: Tag[];
 }
 
@@ -56,6 +58,7 @@ export default function PostEdit({ post = null, categories = [], existingTags = 
         content: post?.content ?? '',
         category_id: post?.category_id ?? '',
         excerpt: post?.excerpt ?? '',
+        feature_image_url: post?.feature_image_url ?? '',
         tags: existingTags.length > 0 ? existingTags : (post?.tags ? post.tags.map((tag: Tag) => tag.name) : []),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         is_draft: post ? Boolean((post as any).is_draft) : true,
@@ -286,6 +289,46 @@ export default function PostEdit({ post = null, categories = [], existingTags = 
                                     value={data.excerpt}
                                     onChange={e => setData('excerpt', e.target.value)}
                                 />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="feature_image_url">Feature Image</Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        id="feature_image_url"
+                                        value={data.feature_image_url}
+                                        onChange={e => setData('feature_image_url', e.target.value)}
+                                        placeholder="Enter image URL or use uploader"
+                                        className="flex-1"
+                                    />
+                                    <MediaBrowser
+                                        onSelect={(url) => {
+                                            setData('feature_image_url', url);
+                                        }}
+                                        trigger={
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                title="Select from media library"
+                                            >
+                                                Browse
+                                            </Button>
+                                        }
+                                    />
+                                </div>
+                                {data.feature_image_url && (
+                                    <div className="mt-2">
+                                        <img 
+                                            src={data.feature_image_url} 
+                                            alt="Feature image preview" 
+                                            className="max-w-xs max-h-32 object-cover rounded border"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).style.display = 'none';
+                                            }}
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-2">

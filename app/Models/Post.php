@@ -15,6 +15,7 @@ class Post extends Model
         'title',
         'slug',
         'excerpt',
+        'feature_image_url',
         'content',
         'is_draft',
         'views_count',
