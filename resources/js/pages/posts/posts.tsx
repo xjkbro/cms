@@ -32,6 +32,7 @@ type Post = {
     authors?: User[];
     content: string;
     excerpt: string | null;
+    feature_image_url?: string;
     tags: Tag[];
     is_draft: boolean;
     created_at: string;
@@ -68,6 +69,27 @@ export default function Posts({posts, tags}: PostsProps) {
     const columnHelper = createColumnHelper<Post>();
 
     const columns = useMemo(() => [
+        columnHelper.accessor('feature_image_url', {
+            header: 'Image',
+            cell: info => {
+                const imageUrl = info.getValue();
+                return imageUrl ? (
+                    <img 
+                        src={imageUrl} 
+                        alt="Post feature image" 
+                        className="w-12 h-8 object-cover rounded border"
+                        onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                    />
+                ) : (
+                    <div className="w-12 h-8 bg-muted rounded border flex items-center justify-center text-xs text-muted-foreground">
+                        No image
+                    </div>
+                );
+            },
+            enableSorting: false,
+        }),
         columnHelper.accessor('title', {
             header: 'Title',
             cell: info => info.getValue(),
