@@ -36,7 +36,7 @@ chown -R www-data:www-data /var/www/storage
 chmod -R 775 /var/www/storage
 chmod 755 /var/www
 
-php artisan l5-sw:generate || true
+# php artisan l5-sw:generate || true # might not need to run this as long as the user runs it before committing
 
 # Run php-fpm as PID 1
 exec php-fpm
