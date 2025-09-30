@@ -29,6 +29,8 @@ if [ ! -d "public/build" ] || [ -z "$(ls -A public/build 2>/dev/null || true)" ]
   npm run build || true
 fi
 
+php artisan migrate --force || true
+
 php artisan optimize
 php artisan storage:link || true
 
