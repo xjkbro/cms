@@ -115,34 +115,34 @@ export function MediaBrowser({ onSelect, trigger }: MediaBrowserProps) {
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+            <DialogContent className="sm:min-w-xl md:min-w-3xl lg:min-w-4xl max-h-[80vh] overflow-hidden">
                 <DialogHeader>
                     <DialogTitle>Media Library</DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-4">
-                    {/* Upload Section */}
-                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4">
-                        <div className="text-center">
-                            <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                            <Label htmlFor="media-upload" className="cursor-pointer">
-                                <span className="text-sm font-medium">Click to upload</span>
-                                <Input
-                                    id="media-upload"
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={(e) => handleFileUpload(e.target.files)}
-                                    disabled={uploading}
-                                />
-                            </Label>
-                            {uploading && <p className="text-sm text-muted-foreground mt-2">Uploading...</p>}
+                    <Label htmlFor="media-upload" className="cursor-pointer">
+                        {/* Upload Section */}
+                        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 hover:bg-neutral-700/10 transition">
+                            <div className="text-center">
+                                <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                                    <span className="text-sm font-medium">Click to upload</span>
+                                    <Input
+                                        id="media-upload"
+                                        type="file"
+                                        multiple
+                                        accept="image/*,.webp"
+                                        className="hidden"
+                                        onChange={(e) => handleFileUpload(e.target.files)}
+                                        disabled={uploading}
+                                    />
+                                {uploading && <p className="text-sm text-muted-foreground mt-2">Uploading...</p>}
+                            </div>
                         </div>
-                    </div>
+                    </Label>
 
                     {/* URL Section */}
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 mt-2">
                         <Input
                             placeholder="Enter image URL"
                             id="url-input"
@@ -184,7 +184,7 @@ export function MediaBrowser({ onSelect, trigger }: MediaBrowserProps) {
                     </div>
 
                     {/* Media Grid */}
-                    <div className="max-h-96 overflow-y-auto">
+                    <div className="h-96 max-h-96 overflow-y-auto">
                         {loading ? (
                             <div className="text-center py-8">Loading media...</div>
                         ) : media.length === 0 ? (
@@ -192,13 +192,13 @@ export function MediaBrowser({ onSelect, trigger }: MediaBrowserProps) {
                                 No media uploaded yet
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 {media.map((item) => (
                                     <div
                                         key={item.id}
-                                        className="group relative border rounded-lg overflow-hidden hover:border-primary"
+                                        className="group relative flex border rounded-lg overflow-hidden hover:border-primary"
                                     >
-                                        <div className="aspect-square bg-muted flex items-center justify-center">
+                                        <div className="w-20 aspect-square bg-muted flex items-center justify-center">
                                             {isImage(item.mime_type) ? (
                                                 <img
                                                     src={item.url}
@@ -211,7 +211,7 @@ export function MediaBrowser({ onSelect, trigger }: MediaBrowserProps) {
                                         </div>
                                         <div className="p-2">
                                             <p className="text-xs font-medium truncate" title={item.name}>
-                                                {item.name}
+                                                {item.name.length > 20 ? item.name.substring(0, 20) + '...' : item.name}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
                                                 {item.human_readable_size}
@@ -221,7 +221,7 @@ export function MediaBrowser({ onSelect, trigger }: MediaBrowserProps) {
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
-                                                        className="h-6 px-2 text-xs"
+                                                        className="h-6 px-2 text-xs cursor-pointer"
                                                         onClick={() => handleSizeSelect(item, undefined, undefined)}
                                                     >
                                                         Original
@@ -229,7 +229,7 @@ export function MediaBrowser({ onSelect, trigger }: MediaBrowserProps) {
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
-                                                        className="h-6 px-2 text-xs"
+                                                        className="h-6 px-2 text-xs cursor-pointer"
                                                         onClick={() => handleSizeSelect(item, 800, undefined)}
                                                     >
                                                         W:800
@@ -237,7 +237,7 @@ export function MediaBrowser({ onSelect, trigger }: MediaBrowserProps) {
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
-                                                        className="h-6 px-2 text-xs"
+                                                        className="h-6 px-2 text-xs cursor-pointer"
                                                         onClick={() => handleSizeSelect(item, undefined, 600)}
                                                     >
                                                         H:600

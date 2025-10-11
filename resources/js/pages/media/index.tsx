@@ -35,6 +35,8 @@ export default function MediaIndex({ media }: MediaIndexProps) {
     const [uploading, setUploading] = useState(false);
     const [editingMedia, setEditingMedia] = useState<Media | null>(null);
     const [editName, setEditName] = useState('');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [itemView, setItemView] = useState<'list' | 'grid'>('grid');
 
     const handleFileUpload = async (files: FileList | null) => {
         if (!files) return;
@@ -117,6 +119,17 @@ export default function MediaIndex({ media }: MediaIndexProps) {
 
     const isImage = (mimeType: string) => mimeType.startsWith('image/');
 
+
+    // const displayItemView = () => {
+    //     if (itemView === 'list') {
+    //         return (<></>)
+    //     }
+    //     if (itemView === 'grid') {
+    //         return (<></>)
+    //     }
+    //     return null;
+    // };
+
     return (
         <AppLayout
             breadcrumbs={[
@@ -146,7 +159,7 @@ export default function MediaIndex({ media }: MediaIndexProps) {
                                         id="file-upload"
                                         type="file"
                                         multiple
-                                        accept="image/*,video/*,audio/*,application/*"
+                                        accept="image/*,video/*,audio/*,application/*,.webp"
                                         onChange={(e) => handleFileUpload(e.target.files)}
                                         disabled={uploading}
                                     />

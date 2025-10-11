@@ -322,7 +322,7 @@ class PostController extends Controller
     public function uploadImage(Request $request)
     {
         $request->validate([
-            'file' => 'required|image|max:5120', // max 5MB
+            'file' => 'required|file|mimes:jpeg,jpg,png,gif,webp,svg,bmp,tiff|max:5120', // max 5MB, support WebP
         ]);
         $user = $request->user();
         $file = $request->file('file');

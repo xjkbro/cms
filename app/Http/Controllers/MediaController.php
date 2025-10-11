@@ -141,7 +141,7 @@ class MediaController extends Controller
 
         if ($request->hasFile('file')) {
             $request->validate([
-                'file' => 'required|file|max:5120', // max 5MB
+                'file' => 'required|file|mimes:jpeg,jpg,png,gif,webp,svg,bmp,tiff|max:5120', // max 5MB, support WebP
             ]);
 
             $file = $request->file('file');
@@ -328,8 +328,19 @@ class MediaController extends Controller
             if ($width) {
                 $image->scale(width: $width);
             }
-            return response($image->encode()->toString())
-                ->header('Content-Type', 'image/jpeg');
+            
+            // Preserve original format, especially for WebP
+            $encodedImage = match($media->mime_type) {
+                'image/webp' => $image->encodeByMediaType('image/webp'),
+                'image/png' => $image->encodeByMediaType('image/png'),
+                'image/gif' => $image->encodeByMediaType('image/gif'),
+                'image/bmp' => $image->encodeByMediaType('image/bmp'),
+                'image/tiff' => $image->encodeByMediaType('image/tiff'),
+                default => $image->encodeByMediaType('image/jpeg'),
+            };
+            
+            return response($encodedImage->toString())
+                ->header('Content-Type', $media->mime_type ?: 'image/jpeg');
 
         } catch (\Exception $e) {
             // Log the error
@@ -385,12 +396,24 @@ class MediaController extends Controller
         // Generate cache key based on file path, dimensions, and file modification time
         $cacheKey = md5($path . '_' . $width . '_' . $height . '_' . $fit . '_' . ($media->updated_at ?? ''));
         $cacheDir = 'cache/images';
-        $cachedPath = $cacheDir . '/' . $cacheKey . '.jpg';
+        
+        // Determine file extension based on mime type
+        $extension = match($media->mime_type) {
+            'image/webp' => 'webp',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/bmp' => 'bmp',
+            'image/tiff' => 'tiff',
+            default => 'jpg'
+        };
+        
+        $cachedPath = $cacheDir . '/' . $cacheKey . '.' . $extension;
 
         // Check if cached version exists
         if (Storage::disk('public')->exists($cachedPath)) {
             $response = response()->file(Storage::disk('public')->path($cachedPath));
             $response->headers->set('Cache-Control', 'public, max-age=31536000'); // 1 year cache
+            $response->headers->set('Content-Type', $media->mime_type ?: 'image/jpeg');
             return $response;
         }
 
@@ -422,8 +445,15 @@ class MediaController extends Controller
                 $image->scale(height: $height);
             }
 
-            // Encode the image
-            $encodedImage = $image->encode()->toString();
+            // Encode the image preserving original format
+            $encodedImage = match($media->mime_type) {
+                'image/webp' => $image->encodeByMediaType('image/webp'),
+                'image/png' => $image->encodeByMediaType('image/png'),
+                'image/gif' => $image->encodeByMediaType('image/gif'),
+                'image/bmp' => $image->encodeByMediaType('image/bmp'),
+                'image/tiff' => $image->encodeByMediaType('image/tiff'),
+                default => $image->encodeByMediaType('image/jpeg'),
+            };
 
             // Ensure cache directory exists
             if (!Storage::disk('public')->exists($cacheDir)) {
@@ -431,11 +461,11 @@ class MediaController extends Controller
             }
 
             // Save to cache for future requests
-            Storage::disk('public')->put($cachedPath, $encodedImage);
+            Storage::disk('public')->put($cachedPath, $encodedImage->toString());
 
             // Return the resized image
-            return response($encodedImage)
-                ->header('Content-Type', 'image/jpeg')
+            return response($encodedImage->toString())
+                ->header('Content-Type', $media->mime_type ?: 'image/jpeg')
                 ->header('Cache-Control', 'public, max-age=31536000'); // 1 year cache
 
         } catch (\Exception $e) {

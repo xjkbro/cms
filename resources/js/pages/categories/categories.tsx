@@ -34,6 +34,10 @@ export default function Categories({ categories }: CategoriesProps) {
     const columnHelper = createColumnHelper<Category>();
 
     const columns = useMemo(() => [
+        columnHelper.accessor('id', {
+            header: 'ID',
+            cell: info => info.getValue(),
+        }),
         columnHelper.accessor('name', {
             header: 'Name',
             cell: info => info.getValue(),

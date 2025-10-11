@@ -280,6 +280,7 @@ export default function PostEdit({ post = null, categories = [], existingTags = 
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                {errors.category_id && <div className="text-sm text-red-600">{errors.category_id}</div>}
                             </div>
 
                             <div className="space-y-2">
@@ -288,7 +289,16 @@ export default function PostEdit({ post = null, categories = [], existingTags = 
                                     id="excerpt"
                                     value={data.excerpt}
                                     onChange={e => setData('excerpt', e.target.value)}
+                                    placeholder="Brief description of your post (max 255 characters)"
                                 />
+                                <div className="flex justify-between">
+                                    <div>
+                                        {errors.excerpt && <div className="text-sm text-red-600">{errors.excerpt}</div>}
+                                    </div>
+                                    <div className={`text-sm ${data.excerpt.length > 255 ? 'text-red-600' : 'text-muted-foreground'}`}>
+                                        {data.excerpt.length}/255
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="space-y-2">
@@ -329,6 +339,7 @@ export default function PostEdit({ post = null, categories = [], existingTags = 
                                         />
                                     </div>
                                 )}
+                                {errors.feature_image_url && <div className="text-sm text-red-600">{errors.feature_image_url}</div>}
                             </div>
 
                             <div className="space-y-2">
@@ -560,6 +571,7 @@ export default function PostEdit({ post = null, categories = [], existingTags = 
                                     onChange={(tags) => setData('tags', tags)}
                                     placeholder="Add tags for your post"
                                 />
+                                {errors.tags && <div className="text-sm text-red-600">{errors.tags}</div>}
                             </div>
 
                             <Button type="submit" disabled={processing}>

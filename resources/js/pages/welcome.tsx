@@ -56,8 +56,8 @@ export default function Welcome() {
                     className="absolute pointer-events-none z-20"
                     style={{
                         backgroundImage: `
-                            linear-gradient(to right, rgba(27, 27, 24, 0.6) 1px, transparent 1px),
-                            linear-gradient(to bottom, rgba(27, 27, 24, 0.6) 1px, transparent 1px)
+                            linear-gradient(to right, rgba(27, 27, 24, 0.3) 1px, transparent 1px),
+                            linear-gradient(to bottom, rgba(27, 27, 24, 0.3) 1px, transparent 1px)
                         `,
                         backgroundSize: '50px 50px',
                         width: '100vw',
@@ -68,12 +68,12 @@ export default function Welcome() {
                             rgba(0, 0, 0, 1) 0%,
                             rgba(0, 0, 0, 0.8) 40%,
                             rgba(0, 0, 0, 0.2) 70%,
-                            transparent 100%)`,
+                            rgba(0, 0, 0, 0.1) 100%)`,
                         WebkitMask: `radial-gradient(circle 250px at ${mousePosition.x}px ${mousePosition.y}px,
                             rgba(0, 0, 0, 1) 0%,
                             rgba(0, 0, 0, 0.8) 40%,
                             rgba(0, 0, 0, 0.2) 70%,
-                            transparent 100%)`
+                            rgba(0, 0, 0, 0.1) 100%)`
                     }}
                 />
 
@@ -94,12 +94,12 @@ export default function Welcome() {
                             rgba(0, 0, 0, 1) 0%,
                             rgba(0, 0, 0, 0.8) 40%,
                             rgba(0, 0, 0, 0.2) 70%,
-                            transparent 100%)`,
+                            rgba(0, 0, 0, 0.1) 100%)`,
                         WebkitMask: `radial-gradient(circle 250px at ${mousePosition.x}px ${mousePosition.y}px,
                             rgba(0, 0, 0, 1) 0%,
                             rgba(0, 0, 0, 0.8) 40%,
                             rgba(0, 0, 0, 0.2) 70%,
-                            transparent 100%)`
+                            rgba(0, 0, 0, 0.1) 100%)`
                     }}
                 />
 

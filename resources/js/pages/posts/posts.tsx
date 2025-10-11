@@ -123,10 +123,10 @@ export default function Posts({posts, tags}: PostsProps) {
             },
             enableSorting: true,
         }),
-        columnHelper.accessor('excerpt', {
-            header: 'Excerpt',
-            cell: info => info.getValue(),
-        }),
+        // columnHelper.accessor('excerpt', {
+        //     header: 'Excerpt',
+        //     cell: info => info.getValue(),
+        // }),
         columnHelper.accessor(row => row.tags.map(tag => tag.name).join(', '), {
             id: 'tags',
             header: 'Tags',
