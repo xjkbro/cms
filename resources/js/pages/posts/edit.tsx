@@ -329,9 +329,9 @@ export default function PostEdit({ post = null, categories = [], existingTags = 
                                 </div>
                                 {data.feature_image_url && (
                                     <div className="mt-2">
-                                        <img 
-                                            src={data.feature_image_url} 
-                                            alt="Feature image preview" 
+                                        <img
+                                            src={data.feature_image_url}
+                                            alt="Feature image preview"
                                             className="max-w-xs max-h-32 object-cover rounded border"
                                             onError={(e) => {
                                                 (e.target as HTMLImageElement).style.display = 'none';

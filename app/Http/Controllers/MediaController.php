@@ -328,7 +328,7 @@ class MediaController extends Controller
             if ($width) {
                 $image->scale(width: $width);
             }
-            
+
             // Preserve original format, especially for WebP
             $encodedImage = match($media->mime_type) {
                 'image/webp' => $image->encodeByMediaType('image/webp'),
@@ -338,7 +338,7 @@ class MediaController extends Controller
                 'image/tiff' => $image->encodeByMediaType('image/tiff'),
                 default => $image->encodeByMediaType('image/jpeg'),
             };
-            
+
             return response($encodedImage->toString())
                 ->header('Content-Type', $media->mime_type ?: 'image/jpeg');
 
@@ -396,7 +396,7 @@ class MediaController extends Controller
         // Generate cache key based on file path, dimensions, and file modification time
         $cacheKey = md5($path . '_' . $width . '_' . $height . '_' . $fit . '_' . ($media->updated_at ?? ''));
         $cacheDir = 'cache/images';
-        
+
         // Determine file extension based on mime type
         $extension = match($media->mime_type) {
             'image/webp' => 'webp',
@@ -406,7 +406,7 @@ class MediaController extends Controller
             'image/tiff' => 'tiff',
             default => 'jpg'
         };
-        
+
         $cachedPath = $cacheDir . '/' . $cacheKey . '.' . $extension;
 
         // Check if cached version exists
